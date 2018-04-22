@@ -29,6 +29,7 @@ class UserController {
             'password' => $pass
         );
         if(SvUser::create($post)){
+            $request->session()->put('id',$id);
             $request->session()->put('logon',true);
             return view('logon', ['message' => 'success!']);
         }else{
@@ -47,10 +48,8 @@ class UserController {
         $pass = $request->pass;
         $user = SvUser::where('screen_name', $id)->first();
         
-        if( 
-            !empty($user) &&
-            $user->password == $pass 
-        ){
+        if( !empty($user) && $user->password == $pass ){
+            $request->session()->put('id',$id);
             $request->session()->put('logon',true);
             return view('logon', ['message' => 'ログインに成功しました。']);
         }else{
