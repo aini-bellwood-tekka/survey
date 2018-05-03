@@ -15,7 +15,41 @@ class SurveyController {
         $logon = $request->session()->get('logon',false);
         if($logon == false){ return view('logoff',['message' => 'ログインしてくだい。']); }
         
-        return view('logon', ['message' => '']);
+        return $this->_getSurveyView($request->id);
+    }
+    
+    private function _getSurveyView($id){
+        
+        return view('survey', ['message' => 'success!','data' => $this->_getSurvey($id)]);
+    }
+    
+    private function _getSurvey($id){
+  
+        $survey = SvSurvey::where('id', $id)->first();
+        $options = SvSurveyOptions::where('survey_id', $id)->get();
+        
+        if(empty($survey) || empty($options)) { return view('logon', ['message' => '質問の取得に失敗しました。(E002)']); }
+        
+        $data = array(
+            'survey_id' => $id,
+            'question' => $survey->description,
+            'option' => array(),
+         );
+        
+        $i = 0;
+        foreach($options as $op){
+            $op_var = array(
+                'var' => $i,
+                'text' => $op->description,
+                'checked' => false,
+            );
+            $i++;
+            $data['option'][] = $op_var;
+        }
+        //$data['option'][0]['checked'] = true;
+        //var_dump($data);
+         
+        return $data;
     }
 
     public function surveyCrate(Request $request) {
@@ -51,7 +85,8 @@ class SurveyController {
         }
         
         if($postSuccess){
-            return view('survey', ['message' => 'success!','data' => $request]);
+            return redirect('survey?id='.$survey->id);
+            //return $this->_getSurveyView($survey->id);
         }else{
             return view('logon', ['message' => '質問の作成に失敗しました。(E002)']);
         }

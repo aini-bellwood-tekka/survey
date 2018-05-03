@@ -12,14 +12,16 @@
 @endsection
 @section('content')
     <h1>あんけーと</h1>
+    <?php //echo $message; ?><br>
     <form method="get" action="/">
         {{ csrf_field() }}
-        <?php echo $data->question; ?><br>
-        <input type="radio" name="option" value="0" checked><?php echo $data->option[0]; ?><br>
-        <input type="radio" name="option" value="1"><?php echo $data->option[1]; ?><br>
-        <input type="radio" name="option" value="2"><?php echo $data->option[2]; ?><br>
-        <input type="radio" name="option" value="3"><?php echo $data->option[3]; ?><br>
+        <?php echo $data['question']; ?><br>
+        
+        <?php foreach ($data['option'] as $op){ ?>
+        <input type="radio" name="option" value=<?= $op['var'] ?> <?php if($op['checked']) {print 'checked';} ?>><?php echo $op['text']; ?><br>
+        <?php } ?>
         <br>
+       
         <input type="submit" value="投票する！">
     </form>
     <br>
