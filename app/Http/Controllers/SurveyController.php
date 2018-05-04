@@ -11,6 +11,9 @@ use App\SvSurvey;
 use App\SvSurveyOptions;
 
 class SurveyController {
+    
+    const teisuu = 0;
+    
     public function getSurvey(Request $request) {
         $logon = $request->session()->get('logon',false);
         if($logon == false){ return view('logoff',['message' => 'ログインしてくだい。']); }
@@ -18,11 +21,37 @@ class SurveyController {
         return $this->_getSurveyView($request->id);
     }
     
+    public function getSurveyList(Request $request) {
+        $data = $this->_getSurveyList('',$request->page,10);
+        
+        return view('search', ['message' => 'success!','data' => $data]);
+    }
+    private function _getSurveyList($searchOption,$page,$count){
+        
+        $page = ( $page < 1 )? 1: $page;
+        $surveys = SvSurvey::all()->slice( ( $page - 1 ) * $count, $count);
+        
+        if(empty($surveys)) { return view('logon', ['message' => '質問の取得に失敗しました。(SVL000)']); }
+        
+        $data = array(
+            'searchOption' => $searchOption,
+            'page' => $page,
+            'survey' => array(),
+         );
+        foreach($surveys as $sv){
+            $op_var = array(
+                'id' => $sv->id,
+                'text' => $sv->description,
+            );
+            $data['survey'][] = $op_var;
+        }
+        
+        return $data;
+    }
     private function _getSurveyView($id){
         
         return view('survey', ['message' => 'success!','data' => $this->_getSurvey($id)]);
     }
-    
     private function _getSurvey($id){
   
         $survey = SvSurvey::where('id', $id)->first();
@@ -52,7 +81,7 @@ class SurveyController {
         return $data;
     }
 
-    public function surveyCrate(Request $request) {
+    public function surveyCreate(Request $request) {
         $logon = $request->session()->get('logon',false);
         if($logon == false){ return view('logoff',['message' => 'ログインしてくだい。']); }
         
@@ -91,5 +120,8 @@ class SurveyController {
             return view('logon', ['message' => '質問の作成に失敗しました。(E002)']);
         }
     }
-
+    public function getSurveyCreateForm(Request $request) {
+        
+        return view('surveycreate', ['message' => 'success!']);
+    }
 }

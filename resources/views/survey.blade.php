@@ -21,12 +21,10 @@
         <input type="radio" name="option" value=<?= $op['var'] ?> <?php if($op['checked']) {print 'checked';} ?>><?php echo $op['text']; ?><br>
         <?php } ?>
         <br>
-       
+        <input type="hidden" name="id" value=<?= $data['survey_id'] ?>>
         <input type="submit" value="投票する！">
     </form>
     <br>
-    <form method="post" action="/logoff">
-        {{ csrf_field() }}
-        <input type="submit" value="ログアウト">
-    </form>
+    <br>
+    <a href="/logoff">ログアウト</a>
 @endsection
