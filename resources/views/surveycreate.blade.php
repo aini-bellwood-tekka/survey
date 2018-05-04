@@ -36,5 +36,7 @@
     </form>
     <br>
     <br>
+    <a href="/">トップに戻る</a>
+    <br>
     <a href="/logoff">ログアウト</a>
 @endsection

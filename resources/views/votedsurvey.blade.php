@@ -14,19 +14,14 @@
     <h1>あんけーと</h1>
     <?php echo $message; ?><br>
     <?php echo $data['question']; ?><br>
-    <form method="post" action="/vote">
-        {{ csrf_field() }}
-        
-        <?php foreach ($data['option'] as $op){ ?>
-        <input type="radio" name="option" value=<?= $op['var'] ?>><?php echo $op['text']; ?><br>
-        <?php } ?>
-        <br>
-        <input type="radio" name="option" value='-1' checked>投票しないけど結果は見たい
-        <br>
-        <br>
-        <input type="hidden" name="id" value=<?= $data['survey_id'] ?>>
-        <input type="submit" value="投票する！">
-    </form>
+   
+    <table>
+    <?php foreach ($data['option'] as $op){ ?>
+         <tr><td><?php echo $op['vote_count'].'票：'.(($op['vote_count'] < 1 or $data['all_vote_count'] <1 )?('0'):(($op['vote_count'] /$data['all_vote_count'])*100.0)).'％'; ?></td>
+             <td><?php echo $op['text']; ?></td></tr>
+    <?php } ?>
+    </table>
+    <?php echo '総投票数：'.$data['all_vote_count'].'票'; ?>
     <br>
     <br>
     <a href="/">トップに戻る</a>

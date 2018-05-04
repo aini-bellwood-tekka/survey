@@ -14,3 +14,5 @@ Route::get('/survey', 'SurveyController@getSurvey');
 
 Route::get('/surveycreate', 'SurveyController@getSurveyCreateForm');
 Route::post('/surveycreate', 'SurveyController@surveyCreate');
+
+Route::post('/vote', 'SurveyController@vote');

@@ -33,7 +33,8 @@
     <?php } ?>
     <a href=<?= 'search?page='.($data['page'] + 1) ?>>→</a>
     <br>
-    
+    <br>
+    <a href="/">トップに戻る</a>
     <br>
     <a href="/logoff">ログアウト</a>
 @endsection
