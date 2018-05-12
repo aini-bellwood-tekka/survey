@@ -16,28 +16,45 @@ class SurveyController {
     public function getSurveyList(Request $request) {
         
         $searchOption = array(
-            'sort' => 'neworder',
-            'refine'=> 'none',
+            'sort' => $request->sort,
+            'order'=> $request->order,
             'target_user_id' => $request->session()->get('id'),
         );
         $data = $this->_getSurveyList($searchOption,$request->page,10);
+        $data['sort'] = $request->sort;
+        $data['order'] = $request->order;
         
         return view('search', ['message' => '','data' => $data]);
     }
     private function _getSurveyList($searchOption,$page,$count){
         
         $page = ( $page < 1 )? 1: $page;
-        if($searchOption['refine'] == 'mysurvey'){
+        if($searchOption['sort'] == 'ms'){
+            //自分の投稿した質問
             $baseSurveys = SvSurvey::where('author_id', $searchOption['target_user_id'])->get();
+            
+        }elseif($searchOption['sort'] == 'ma'){
+            //自分の回答した質問
+            if($searchOption['order'] == 'o'){
+                $answers = SvUserIdSurveyRelation::where('user_id', $searchOption['target_user_id'])->get()->sortBy('updated_at')->slice( ( $page - 1 ) * $count, $count+1);
+            }else{
+                $answers = SvUserIdSurveyRelation::where('user_id', $searchOption['target_user_id'])->get()->sortByDesc('updated_at')->slice( ( $page - 1 ) * $count, $count+1);
+            }
+            $answerIdArray = Array();
+            foreach($answers as $an){
+                $answerIdArray[] = $an->survey_id;
+            }
+            $baseSurveys = SvSurvey::whereIn('id', $answerIdArray)->get();
+            
         }else{
             $baseSurveys = SvSurvey::all();
         }
-        if($searchOption['sort'] == 'order'){
-            $surveys = $baseSurveys->sortBy('updated_at')->slice( ( $page - 1 ) * $count, $count);
-        }else{
-            $surveys = $baseSurveys->sortByDesc('updated_at')->slice( ( $page - 1 ) * $count, $count);
-        }
         
+        if($searchOption['order'] == 'o'){
+            $surveys = $baseSurveys->sortBy('updated_at')->slice( ( $page - 1 ) * $count, $count+1);
+        }else{
+            $surveys = $baseSurveys->sortByDesc('updated_at')->slice( ( $page - 1 ) * $count, $count+1);
+        }
         
         if(empty($surveys)) { return view('logon', ['message' => '質問の取得に失敗しました。(SVL000)']); }
         
@@ -50,14 +67,17 @@ class SurveyController {
             $op_var = array(
                 'id' => $sv->id,
                 'text' => $sv->description,
+                'author_id' => $sv->author_id,
             );
             $data['survey'][] = $op_var;
         }
+        $data['count'] = $baseSurveys->count();
         
         return $data;
     }
     
     public function getSurvey(Request $request) {
+        
         $logon = $request->session()->get('logon',false);
         if($logon == false){ return view('logoff',['message' => 'ログインしてくだい。']); }
        
@@ -74,28 +94,37 @@ class SurveyController {
         return $this->_getSurveyView($message,$request->session()->get('id'),$request->id);
     }
     private function _getSurveyView($massage,$user_id,$survey_id){
-        
+        //質問view取得関数
         $votes = SvUserIdSurveyRelation::where('survey_id', $survey_id)->where('user_id', $user_id)->first();
         $survey = SvSurvey::where('id', $survey_id)->first();
         
         $voted = (!empty($votes) or $survey->author_id == $user_id);
-        return view(($voted)? 'votedsurvey':'survey', ['message' => $massage,'data' => $this->_getSurvey($voted,$survey_id)]);
+        $data =  $this->_getSurvey($voted,$user_id,$survey_id);
+        
+        return view(($voted)? 'votedsurvey':'survey', ['message' => $massage,'data' =>$data]);
     }
-    private function _getSurvey($voted,$survey_id){
-  
+    private function _getSurvey($voted,$user_id,$survey_id){
+        //質問取得関数
         $survey = SvSurvey::where('id', $survey_id)->first();
         $options = SvSurveyOptions::where('survey_id', $survey_id)->get();
-        $votes = SvUserIdSurveyRelation::where('survey_id', $survey_id)->get();
-        $all_vote_count = $votes->count() - $votes->where('number', -1)->count();
         
         if(empty($survey) || empty($options)) { return view('logon', ['message' => '質問の取得に失敗しました。(E002)']); }
         
+        $votes = SvUserIdSurveyRelation::where('survey_id', $survey_id)->get();
+        $all_vote_count = $votes->count() - $votes->where('number', -1)->count();
+        $my_vote = $votes->where('user_id', $user_id)->first();
+        $my_vote_num = (empty($my_vote))? -1:$my_vote->number;
+                
         $data = array(
             'voted' => !empty($voted),
             'survey_id' => $survey_id,
             'question' => $survey->description,
             'all_vote_count' => $all_vote_count,
             'option' => array(),
+            'author_id' => $survey->author_id,
+
+            'my_vote_num' => $my_vote_num,
+            'my_survey' => ($user_id == $survey->author_id),
          );
         
         $i = 0;
@@ -103,6 +132,7 @@ class SurveyController {
             $op_var = array(
                 'var' => $op->number,
                 'text' => $op->description,
+                'my_voted' => ($i == $my_vote_num),
             );
             if($voted){
                 $op_var['vote_count'] = $votes->where('number', $op->number)->count();

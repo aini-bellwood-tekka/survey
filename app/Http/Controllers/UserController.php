@@ -13,8 +13,10 @@ class UserController {
     
     public function getTopPage(Request $request) {
         $logon = $request->session()->get('logon',false);
+        
         if($logon == true){
-            return view('logon', ['message' => 'ログインに成功しました。']);
+            $data['user_id'] = $request->session()->get('id');
+            return view('logon', ['message' => 'ログイン中です。','data' => $data]);
         }else{
             return view('logoff',['message' => '']);
         }
@@ -31,7 +33,8 @@ class UserController {
         if(SvUser::create($post)){
             $request->session()->put('id',$id);
             $request->session()->put('logon',true);
-            return view('logon', ['message' => 'success!']);
+            $data['user_id'] = $id;
+            return view('logon', ['message' => 'ユーザー登録に成功しました。','data' => $data]);
         }else{
             return view('signup', ['message' => 'ユーザーがID重複しています。']);
         }
@@ -51,7 +54,8 @@ class UserController {
         if( !empty($user) && $user->password == $pass ){
             $request->session()->put('id',$id);
             $request->session()->put('logon',true);
-            return view('logon', ['message' => 'ログインに成功しました。']);
+            $data['user_id'] = $id;
+            return view('logon', ['message' => 'ログインに成功しました。','data' => $data]);
         }else{
             return view('logoff',['message' => 'IDもしくはパスワードに誤りがあります。']);
         }

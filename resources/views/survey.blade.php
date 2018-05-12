@@ -27,9 +27,12 @@
         <input type="hidden" name="id" value=<?= $data['survey_id'] ?>>
         <input type="submit" value="投票する！">
     </form>
+    <?php echo '総投票数：'.$data['all_vote_count'].'票'; ?><br>
+    <br>
+    <?php echo '作成者：'.$data['author_id']; ?><br>
     <br>
     <br>
-    <a href="/">トップに戻る</a>
+    <a href="/">トップに戻る</a><br>
     <br>
     <a href="/logoff">ログアウト</a>
 @endsection
