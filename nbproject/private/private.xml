@@ -8,8 +8,8 @@
             <file>file:/C:/xampp/htdocs/survey/resources/views/logoff.blade.php</file>
             <file>file:/C:/xampp/htdocs/survey/app/Http/Controllers/UserController.php</file>
             <file>file:/C:/xampp/htdocs/survey/resources/views/surveycreate.blade.php</file>
+            <file>file:/C:/xampp/htdocs/survey/app/SvUserIdSurveyRelation.php</file>
             <file>file:/C:/xampp/htdocs/survey/resources/views/logon.blade.php</file>
-            <file>file:/C:/xampp/htdocs/survey/resources/views/signup.blade.php</file>
             <file>file:/C:/xampp/htdocs/survey/routes/web.php</file>
             <file>file:/C:/xampp/htdocs/survey/resources/views/survey.blade.php</file>
             <file>file:/C:/xampp/htdocs/survey/app/SvUser.php</file>

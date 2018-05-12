@@ -13,16 +13,27 @@ use App\SvUserIdSurveyRelation;
 
 class SurveyController {
     
+    public function textSearch(Request $request) {
+        $logon = $request->session()->get('logon',false);
+        if($logon == false){ return view('logoff',['message' => 'ログインしてくだい。']); }
+        
+        return redirect('search?page=1&sort='.$request->sort.'&order='.$request->order.'&text='.$request->searchtext);
+    }
+    
     public function getSurveyList(Request $request) {
         
         $searchOption = array(
             'sort' => $request->sort,
             'order'=> $request->order,
             'target_user_id' => $request->session()->get('id'),
+            'searchtext' => $request->text,
         );
         $data = $this->_getSurveyList($searchOption,$request->page,10);
+        
+        //受け取ったDataに検索オプションを引き継ぐ
         $data['sort'] = $request->sort;
         $data['order'] = $request->order;
+        $data['url_option'] = '&sort='.($request->sort).'&order='.($request->order).(($request->text == '')?(''):('&text='.$request->text));
         
         return view('search', ['message' => '','data' => $data]);
     }
@@ -33,23 +44,52 @@ class SurveyController {
             //自分の投稿した質問
             $baseSurveys = SvSurvey::where('author_id', $searchOption['target_user_id'])->get();
             
+            //キーワード検索
+            if($searchOption['searchtext'] != ''){
+                $baseSurveys = $baseSurveys->where('description','like', '%'.$searchOption['searchtext'].'%');
+            }
+            
         }elseif($searchOption['sort'] == 'ma'){
             //自分の回答した質問
+            
+            //選択肢DBからユーザIDをキーにしてcount件取得。
             if($searchOption['order'] == 'o'){
-                $answers = SvUserIdSurveyRelation::where('user_id', $searchOption['target_user_id'])->get()->sortBy('updated_at')->slice( ( $page - 1 ) * $count, $count+1);
+                $answers = SvUserIdSurveyRelation::where('user_id', $searchOption['target_user_id'])->get();
+                
+                //キーワード検索
+                if($searchOption['searchtext'] != ''){
+                    $answers = $answers->where('description','like', '%'.$searchOption['searchtext'].'%');
+                }
+                
+                $answers = $answers->sortBy('updated_at')->slice( ( $page - 1 ) * $count, $count+1);
             }else{
-                $answers = SvUserIdSurveyRelation::where('user_id', $searchOption['target_user_id'])->get()->sortByDesc('updated_at')->slice( ( $page - 1 ) * $count, $count+1);
+                $answers = SvUserIdSurveyRelation::where('user_id', $searchOption['target_user_id'])->get();
+                
+                //キーワード検索
+                if($searchOption['searchtext'] != ''){
+                    $answers = $answers->where('description','like', '%'.$searchOption['searchtext'].'%');
+                }
+                $answers = $answers->sortByDesc('updated_at')->slice( ( $page - 1 ) * $count, $count+1);
             }
+            
+            //選択肢から紐づく質問IDをまとめて質問DBから検索
             $answerIdArray = Array();
             foreach($answers as $an){
                 $answerIdArray[] = $an->survey_id;
             }
-            $baseSurveys = SvSurvey::whereIn('id', $answerIdArray)->get();
+            $baseSurveys = SvSurvey::whereIn('id', $answerIdArray);
             
         }else{
+            //全部取ってくる
             $baseSurveys = SvSurvey::all();
+            
+            //キーワード検索
+            if($searchOption['searchtext'] != ''){
+                $baseSurveys = $baseSurveys->where('description',$searchOption['searchtext']);
+            }
         }
         
+        //ページ数を元に必要な件数を絞り込み
         if($searchOption['order'] == 'o'){
             $surveys = $baseSurveys->sortBy('updated_at')->slice( ( $page - 1 ) * $count, $count+1);
         }else{

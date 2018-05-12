@@ -7,6 +7,7 @@ Route::post('/login', 'UserController@userLogin');
 Route::get('/logoff', 'UserController@userLogoff');
 
 Route::get('/search', 'SurveyController@getSurveyList');
+Route::post('/search', 'SurveyController@textSearch');
 
 Route::get('/survey', 'SurveyController@getSurvey');
 
