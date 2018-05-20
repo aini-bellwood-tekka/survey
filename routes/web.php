@@ -16,4 +16,7 @@ Route::get('/survey', 'SurveyController@getSurvey');
 Route::get('/surveycreate', 'SurveyController@getSurveyCreateForm');
 Route::post('/surveycreate', 'SurveyController@surveyCreate');
 
+Route::post('/tagcreate', 'SurveyController@createTag');
+Route::post('/tagerase', 'SurveyController@eraseTag');
+
 Route::post('/vote', 'SurveyController@vote');

@@ -9,6 +9,7 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\SvSurvey;
 use App\SvSurveyOptions;
+use App\SvSurveyTag;
 use App\SvUserIdSurveyRelation;
 
 class SurveyController {
@@ -17,7 +18,11 @@ class SurveyController {
         $logon = $request->session()->get('logon',false);
         if($logon == false){ return view('logoff',['message' => 'ログインしてくだい。']); }
         
-        return redirect('search?page=1&sort='.$request->sort.'&order='.$request->order.'&text='.$request->searchtext);
+        if($request->search_type == "tag"){
+            return redirect('search?page=1&sort='.$request->sort.'&order='.$request->order.'&tag='.$request->search_tag);
+        }else{
+            return redirect('search?page=1&sort='.$request->sort.'&order='.$request->order.'&text='.$request->search_text);
+        }
     }
     
     public function getSurveyList(Request $request) {
@@ -26,27 +31,38 @@ class SurveyController {
             'sort' => $request->sort,
             'order'=> $request->order,
             'target_user_id' => $request->session()->get('id'),
-            'searchtext' => $request->text,
+            'search_text' => $request->text,
+            'search_tag' => $request->tag,
         );
         $data = $this->_getSurveyList($searchOption,$request->page,10);
         
         //受け取ったDataに検索オプションを引き継ぐ
         $data['sort'] = $request->sort;
         $data['order'] = $request->order;
-        $data['url_option'] = '&sort='.($request->sort).'&order='.($request->order).(($request->text == '')?(''):('&text='.$request->text));
+        $data['url_option'] = '&sort='.($request->sort).'&order='.($request->order).(($request->text == '')?(''):('&text='.$request->text)).(($request->tag == '')?(''):('&tag='.$request->tag));
         
         return view('search', ['message' => '','data' => $data]);
     }
     private function _getSurveyList($searchOption,$page,$count){
         
         $page = ( $page < 1 )? 1: $page;
-        if($searchOption['sort'] == 'ms'){
+        if($searchOption['search_tag'] != ''){
+            
+            //全部取ってくる
+            $baseSurveys = SvSurvey::all();
+            
+            //キーワード検索
+            if($searchOption['search_tag'] != ''){
+                $baseSurveys = $baseSurveys->where('description',$searchOption['search_tag']);
+            }
+        }
+        elseif($searchOption['sort'] == 'ms'){
             //自分の投稿した質問
             $baseSurveys = SvSurvey::where('author_id', $searchOption['target_user_id'])->get();
             
             //キーワード検索
-            if($searchOption['searchtext'] != ''){
-                $baseSurveys = $baseSurveys->where('description','like', '%'.$searchOption['searchtext'].'%');
+            if($searchOption['search_text'] != ''){
+                $baseSurveys = $baseSurveys->where('description','like', '%'.$searchOption['search_text'].'%');
             }
             
         }elseif($searchOption['sort'] == 'ma'){
@@ -57,17 +73,17 @@ class SurveyController {
                 $answers = SvUserIdSurveyRelation::where('user_id', $searchOption['target_user_id'])->get();
                 
                 //キーワード検索
-                if($searchOption['searchtext'] != ''){
-                    $answers = $answers->where('description','like', '%'.$searchOption['searchtext'].'%');
+                if($searchOption['search_text'] != ''){
+                    $answers = $answers->where('description','like', '%'.$searchOption['search_text'].'%');
                 }
-                
                 $answers = $answers->sortBy('updated_at')->slice( ( $page - 1 ) * $count, $count+1);
+                
             }else{
                 $answers = SvUserIdSurveyRelation::where('user_id', $searchOption['target_user_id'])->get();
                 
                 //キーワード検索
-                if($searchOption['searchtext'] != ''){
-                    $answers = $answers->where('description','like', '%'.$searchOption['searchtext'].'%');
+                if($searchOption['search_text'] != ''){
+                    $answers = $answers->where('description','like', '%'.$searchOption['search_text'].'%');
                 }
                 $answers = $answers->sortByDesc('updated_at')->slice( ( $page - 1 ) * $count, $count+1);
             }
@@ -84,8 +100,8 @@ class SurveyController {
             $baseSurveys = SvSurvey::all();
             
             //キーワード検索
-            if($searchOption['searchtext'] != ''){
-                $baseSurveys = $baseSurveys->where('description',$searchOption['searchtext']);
+            if($searchOption['search_text'] != ''){
+                $baseSurveys = $baseSurveys->where('description',$searchOption['search_text']);
             }
         }
         
@@ -120,8 +136,11 @@ class SurveyController {
         
         $logon = $request->session()->get('logon',false);
         if($logon == false){ return view('logoff',['message' => 'ログインしてくだい。']); }
-       
-        if($request->vote == 0){
+        
+       if($request->error == 1){
+            $message = 'タグの登録に失敗しました。(E004)';
+        }
+        else if($request->vote == 0){
             $message = '';
         }
         else if($request->vote == 1){
@@ -147,8 +166,9 @@ class SurveyController {
         //質問取得関数
         $survey = SvSurvey::where('id', $survey_id)->first();
         $options = SvSurveyOptions::where('survey_id', $survey_id)->get();
+        $tags = SvSurveyTag::where('survey_id', $survey_id)->get();
         
-        if(empty($survey) || empty($options)) { return view('logon', ['message' => '質問の取得に失敗しました。(E002)']); }
+        if(empty($survey) || empty($options) || empty($tags)) { return view('logon', ['message' => '質問の取得に失敗しました。(E002)']); }
         
         $votes = SvUserIdSurveyRelation::where('survey_id', $survey_id)->get();
         $all_vote_count = $votes->count() - $votes->where('number', -1)->count();
@@ -161,6 +181,7 @@ class SurveyController {
             'question' => $survey->description,
             'all_vote_count' => $all_vote_count,
             'option' => array(),
+            'tag' => array(),
             'author_id' => $survey->author_id,
 
             'my_vote_num' => $my_vote_num,
@@ -182,7 +203,16 @@ class SurveyController {
         }
         //$data['option'][0]['checked'] = true;
         //var_dump($data);
-         
+        
+        foreach($tags as $tag){
+            $tag_var = array(
+                'name' => $tag->name,
+                'tag_id' => $tag->id,
+                'lock_type' => $tag->lock_type,
+            );
+            $data['tag'][] = $tag_var;
+        }
+        
         return $data;
     }
 
@@ -252,6 +282,42 @@ class SurveyController {
             return redirect('survey?id='.$request->id.'&vote=1');
         }
         
+    }
+    
+    public function createTag(Request $request) {
+        $logon = $request->session()->get('logon',false);
+        if($logon == false){ return view('logoff',['message' => 'ログインしてくだい。']); }
+        
+        $id = $request->session()->get('id');
+        
+        //質問の登録
+        $postSurvey = array(
+            'name' => $request->name,
+            'lock_type' => $request->lock_type,
+            'survey_id' => $request->survey_id,
+        );
+        $survey = SvSurveyTag::create($postSurvey);
+        if(!empty($survey)){
+            return redirect('survey?id='.$request->survey_id);
+        }else{
+            return redirect('survey?id='.$request->survey_id.'&error=1');
+        }
+    }
+    public function eraseTag(Request $request) {
+        $logon = $request->session()->get('logon',false);
+        if($logon == false){ return view('logoff',['message' => 'ログインしてくだい。']); }
+        
+        $survey = SvSurveyTag::destroy($request->tag_id);
+        return redirect('survey?id='.$request->survey_id);
+    }  
+    public function _unlockTag(Request $request) {
+        $logon = $request->session()->get('logon',false);
+        if($logon == false){ return view('logoff',['message' => 'ログインしてくだい。']); }
+        
+    }  
+    public function _lockTag(Request $request) {
+        $logon = $request->session()->get('logon',false);
+        if($logon == false){ return view('logoff',['message' => 'ログインしてくだい。']); }
         
     }
 }

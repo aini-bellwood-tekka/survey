@@ -16,7 +16,11 @@
     
     <form method="post" action="/search">
         {{ csrf_field() }}
-        キーワード検索：<input type="text" name="searchtext" size="40">
+        <select name="search_type">
+        <option value="tag">タグ検索</option>
+        <option value="text">キーワード検索</option>
+        </select>
+        <input type="text" name="search_text" size="40">
         <input type="hidden" name="sort" value=<?= $data['sort'] ?>>
         <input type="hidden" name="order" value=<?= $data['order'] ?>>
         <input type="submit" value="検索">
