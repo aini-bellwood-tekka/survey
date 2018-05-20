@@ -30,15 +30,16 @@
     <?php echo '総投票数：'.$data['all_vote_count'].'票'; ?><br>
     <br>
     
+    タグ一覧：
     <?php foreach ($data['tag'] as $tag){ ?>
         <form method="post" action="/tagerase" style="display:inline">
             {{ csrf_field() }}
-            &emsp;
             <a href=<?= "/search?page=1&sort=d&order=n&tag=".$tag['name'] ?>><?php echo $tag['name']; ?></a>
             <input type="hidden" name="survey_id" value=<?= $data['survey_id'] ?>>
             <input type="hidden" name="tag_id" value=<?= $tag['tag_id'] ?>>
             <input type="hidden" name="lock_type" value=<?= $tag['lock_type'] ?>>
             <input type="submit" value="削除">
+            &emsp;
         </form>
     <?php } ?>
     

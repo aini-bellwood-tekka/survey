@@ -19,10 +19,12 @@ class SurveyController {
         if($logon == false){ return view('logoff',['message' => 'ログインしてくだい。']); }
         
         if($request->search_type == "tag"){
-            return redirect('search?page=1&sort='.$request->sort.'&order='.$request->order.'&tag='.$request->search_tag);
+            $text = '&tag='.urlencode($request->search_text);
         }else{
-            return redirect('search?page=1&sort='.$request->sort.'&order='.$request->order.'&text='.$request->search_text);
+            $text = '&text='.urlencode($request->search_text);
         }
+        
+        return redirect('search?page=1&sort='.$request->sort.'&order='.$request->order.$text);
     }
     
     public function getSurveyList(Request $request) {
@@ -31,8 +33,8 @@ class SurveyController {
             'sort' => $request->sort,
             'order'=> $request->order,
             'target_user_id' => $request->session()->get('id'),
-            'search_text' => $request->text,
-            'search_tag' => $request->tag,
+            'search_text' => urldecode($request->text),
+            'search_tag' => urldecode($request->tag),
         );
         $data = $this->_getSurveyList($searchOption,$request->page,10);
         
@@ -48,13 +50,54 @@ class SurveyController {
         $page = ( $page < 1 )? 1: $page;
         if($searchOption['search_tag'] != ''){
             
-            //全部取ってくる
-            $baseSurveys = SvSurvey::all();
+            //survey_tagとsurveyを内部結合。
+            //この時点でsurvey_tagとsurvey間で同じ名前の列はsurveyの値で上書きされるので注意（現状、id,created_at,updated_atが該当）
+            $tags = DB::table('survey_tag')->join('survey','survey_tag.survey_id','=','survey.id');
             
-            //キーワード検索
-            if($searchOption['search_tag'] != ''){
-                $baseSurveys = $baseSurveys->where('description',$searchOption['search_tag']);
+            //完全一致するタグを検索
+            $tags = $tags->where('name',$searchOption['search_tag'])->get();
+            
+            if($searchOption['order'] == 'o'){
+                $surveys = $tags->sortBy('updated_at')->slice( ( $page - 1 ) * $count, $count+1);
+            }else{
+                $surveys = $tags->sortByDesc('updated_at')->slice( ( $page - 1 ) * $count, $count+1);
             }
+
+            /* LaravelのクエリビルダでJoinしようとするとうまくいかない。
+            if($searchOption['order'] == 'o'){
+                $surveys = DB::table('survey_tag')->join('survey',function ($join) use ($searchOption) {
+                    $join->on('survey_tag.survey_id','=','survey.id')
+                            ->where('survey_tag.name',$searchOption['search_tag'])
+                            ->sortBy('survey.updated_at')->slice( ( $page - 1 ) * $count, $count+1); //メソッドがないと言われる
+                    })->get();
+            }else{
+                $surveys = DB::table('survey_tag')->join('survey',function ($join) use ($searchOption) {
+                    $join->on('survey_tag.survey_id','=','survey.id')
+                            ->where('survey_tag.name',$searchOption['search_tag'])
+                            ->sortByDesc('survey.updated_at')->slice( ( $page - 1 ) * $count, $count+1); //メソッドがないと言われる
+                    })->get();
+            }
+            //var_dump($data);
+             */
+            
+            if(empty($surveys)) { return view('logon', ['message' => '質問の取得に失敗しました。(SVL000)']); }
+
+            $data = array(
+                'searchOption' => $searchOption,
+                'page' => $page,
+                'survey' => array(),
+             );
+            foreach($surveys as $sv){
+                $op_var = array(
+                    'id' => $sv->id,
+                    'text' => $sv->description,
+                    'author_id' => $sv->author_id,
+                );
+                $data['survey'][] = $op_var;
+            }
+            $data['count'] = $surveys->count();
+
+            return $data;
         }
         elseif($searchOption['sort'] == 'ms'){
             //自分の投稿した質問
@@ -309,15 +352,5 @@ class SurveyController {
         
         $survey = SvSurveyTag::destroy($request->tag_id);
         return redirect('survey?id='.$request->survey_id);
-    }  
-    public function _unlockTag(Request $request) {
-        $logon = $request->session()->get('logon',false);
-        if($logon == false){ return view('logoff',['message' => 'ログインしてくだい。']); }
-        
-    }  
-    public function _lockTag(Request $request) {
-        $logon = $request->session()->get('logon',false);
-        if($logon == false){ return view('logoff',['message' => 'ログインしてくだい。']); }
-        
     }
 }
