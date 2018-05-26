@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\SvUser;
+use App\SvUserAuth;
 
 class UserController {
     
@@ -26,17 +27,26 @@ class UserController {
     {
         $id = $request->id;
         $pass = $request->pass;
-        $post = array(
+        
+        $userpost = array(
             'screen_name' => $id,
+        );
+        if(!SvUser::create($userpost)){
+            return view('signup', ['message' => 'ユーザーがID重複しています。']);
+        }
+        $authpost = array(
+            'user_name' => $id,
             'password' => $pass
         );
-        if(SvUser::create($post)){
+        if(SvUserAuth::create($authpost)){
             $request->session()->put('id',$id);
             $request->session()->put('logon',true);
             $data['user_id'] = $id;
-            return view('logon', ['message' => 'ユーザー登録に成功しました。','data' => $data]);
+            return redirect('');
+            //return view('logon', ['message' => 'ユーザー登録に成功しました。','data' => $data]);
         }else{
-            return view('signup', ['message' => 'ユーザーがID重複しています。']);
+            SvUser::where('screen_name', $id)->delete();
+            return view('signup', ['message' => 'アカウント登録に失敗しました。']);
         }
     }
     
@@ -49,7 +59,7 @@ class UserController {
     { 
         $id = $request->id;
         $pass = $request->pass;
-        $user = SvUser::where('screen_name', $id)->first();
+        $user = SvUserAuth::where('user_name', $id)->first();
         
         if( !empty($user) && $user->password == $pass ){
             $request->session()->put('id',$id);
