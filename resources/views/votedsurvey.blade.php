@@ -26,6 +26,7 @@
     <?php }elseif($data['my_vote_num'] == -1){ ?>
         <?php echo 'あなたは投票しませんでした。'; ?><br>
     <?php } ?>
+    <?php echo (($data['is_end'])?'投票は締め切っています。':('残り時間：'.$data['remaining_time'])); ?><br>
     <?php echo '総投票数：'.$data['all_vote_count'].'票'; ?><br>
     <br>
     
@@ -52,6 +53,8 @@
     <br>
     
     <?php echo '作成者：'.$data['author_id']; ?><br>
+    <?php echo '開始日時：'.$data['start_at']; ?><br>
+    <?php echo '終了日時：'.$data['end_at']; ?><br>
     <br>
     <br>
     <a href="/">トップに戻る</a><br>

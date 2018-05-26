@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
@@ -150,9 +150,9 @@ class SurveyController {
         
         //ページ数を元に必要な件数を絞り込み
         if($searchOption['order'] == 'o'){
-            $surveys = $baseSurveys->sortBy('updated_at')->slice( ( $page - 1 ) * $count, $count+1);
+            $surveys = $baseSurveys->sortBy('created_at')->slice( ( $page - 1 ) * $count, $count+1);
         }else{
-            $surveys = $baseSurveys->sortByDesc('updated_at')->slice( ( $page - 1 ) * $count, $count+1);
+            $surveys = $baseSurveys->sortByDesc('created_at')->slice( ( $page - 1 ) * $count, $count+1);
         }
         
         if(empty($surveys)) { return view('logon', ['message' => '質問の取得に失敗しました。(SVL000)']); }
@@ -167,6 +167,13 @@ class SurveyController {
                 'id' => $sv->id,
                 'text' => $sv->description,
                 'author_id' => $sv->author_id,
+                
+                'start_at' => $sv->start_at,
+                'end_at' => $sv->end_at,
+                'is_end' => Carbon::parse($sv->end_at)->isPast(),
+                'remaining_time' => Carbon::now()->diff(Carbon::parse($sv->end_at))->format('%d日 %h時間 %i分 %s秒'),
+                
+                'created_at' => $sv->created_at,
             );
             $data['survey'][] = $op_var;
         }
@@ -192,6 +199,12 @@ class SurveyController {
         else if($request->vote == 2){
             $message = '投票に失敗しました。(E003)';
         }
+        else if($request->vote == 3){
+            $message = '質問が見つかりませんでした。(E004)';
+        }
+        else if($request->vote == 4){
+            $message = '締切が過ぎています。(E005)';
+        }
         
         return $this->_getSurveyView($message,$request->session()->get('id'),$request->id);
     }
@@ -200,7 +213,7 @@ class SurveyController {
         $votes = SvUserIdSurveyRelation::where('survey_id', $survey_id)->where('user_id', $user_id)->first();
         $survey = SvSurvey::where('id', $survey_id)->first();
         
-        $voted = (!empty($votes) or $survey->author_id == $user_id);
+        $voted = (!empty($votes) or $survey->author_id == $user_id or Carbon::parse($survey->end_at)->isPast());
         $data =  $this->_getSurvey($voted,$user_id,$survey_id);
         
         return view(($voted)? 'votedsurvey':'survey', ['message' => $massage,'data' =>$data]);
@@ -222,11 +235,17 @@ class SurveyController {
             'voted' => !empty($voted),
             'survey_id' => $survey_id,
             'question' => $survey->description,
+            'author_id' => $survey->author_id,
+            
             'all_vote_count' => $all_vote_count,
             'option' => array(),
             'tag' => array(),
-            'author_id' => $survey->author_id,
-
+            
+            'start_at' => $survey->start_at,
+            'end_at' => $survey->end_at,
+            'is_end' => Carbon::parse($survey->end_at)->isPast(),
+            'remaining_time' => Carbon::now()->diff(Carbon::parse($survey->end_at))->format('%d日 %h時間 %i分 %s秒'),
+            
             'my_vote_num' => $my_vote_num,
             'my_survey' => ($user_id == $survey->author_id),
          );
@@ -265,13 +284,32 @@ class SurveyController {
         
         $id = $request->session()->get('id');
 
+        $limit = $request->timelimit;
+        if(     $limit == '1h'){    $timelimit = Carbon::now()->addSecond(10);  }
+        elseif( $limit == '3h'){    $timelimit = Carbon::now()->addSecond(30);  }
+        elseif( $limit == '6h'){    $timelimit = Carbon::now()->addSecond(60);  }
+        elseif( $limit == '1d'){    $timelimit = Carbon::now()->addSecond(2*60);  }
+        elseif( $limit == '3d'){    $timelimit = Carbon::now()->addSecond(3*60);  }
+        elseif( $limit == '7d'){    $timelimit = Carbon::now()->addSecond(7*60);  }
+        else{$timelimit = Carbon::now();}
+        /*
+        if(     $limit == '1h'){    $timelimit = Carbon::now()->addHour(1);  }
+        elseif( $limit == '3h'){    $timelimit = Carbon::now()->addHour(3);  }
+        elseif( $limit == '6h'){    $timelimit = Carbon::now()->addHour(6);  }
+        elseif( $limit == '1d'){    $timelimit = Carbon::now()->addDay(1);  }
+        elseif( $limit == '3d'){    $timelimit = Carbon::now()->addDay(3);  }
+        elseif( $limit == '7d'){    $timelimit = Carbon::now()->addDay(7);  }
+        else{$timelimit = Carbon::now();}
+        */
+        
         //質問の登録
         $question = $request->question;
-        $timelimit = $request->timelimit;
         $postSurvey = array(
             'author_id' => $id,
             'title' => '',
-            'description' => $question
+            'description' => $question,
+            'start_at' => Carbon::now(),
+            'end_at' => $timelimit,
         );
         $survey = SvSurvey::create($postSurvey);
         if(empty($survey)){ return view('logon', ['message' => '質問の作成に失敗しました。(E002)']); }
@@ -310,6 +348,10 @@ class SurveyController {
         $survey_id = $request->id;
         $votes = SvUserIdSurveyRelation::where('user_id', $user_id)->where('survey_id', $survey_id)->first();
         if(!empty($votes)){ return redirect('survey?id='.$request->id.'&vote=2'); }
+        
+        $survey = SvSurvey::where('id', $survey_id)->first();
+        if(empty($survey)){ return redirect('survey?id='.$request->id.'&vote=3'); }
+        if(Carbon::parse($survey->end_at)->isPast()){ return redirect('survey?id='.$request->id.'&vote=4'); }
         
         $postVote = array(
             'user_id' => $user_id,

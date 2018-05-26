@@ -28,7 +28,9 @@
     <br>
     
     <?php foreach ($data['survey'] as $sv){ ?>
-    <a href=<?= 'survey?id='.$sv['id'] ?>><?php echo $sv['text'].'　作成者：'.$sv['author_id']; ?></a><br>
+    <a href=<?= 'survey?id='.$sv['id'] ?>><?php echo $sv['text'];?></a><br>
+    <?php echo (($sv['is_end'])?'　投票は締め切っています。':('　残り時間：'.$sv['remaining_time'])).'　作成者：'.$sv['author_id'].'　作成日時：'.$sv['created_at']; ?><br>
+    <br>
     <?php } ?>
     <br>
     

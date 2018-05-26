@@ -20,13 +20,13 @@
         <?php foreach ($data['option'] as $op){ ?>
         <input type="radio" name="option" value=<?= $op['var'] ?>><?php echo $op['text']; ?><br>
         <?php } ?>
-        <br>
         <input type="radio" name="option" value='-1' checked>投票しないけど結果は見たい
         <br>
         <br>
         <input type="hidden" name="id" value=<?= $data['survey_id'] ?>>
         <input type="submit" value="投票する！">
     </form>
+    <?php echo '残り時間：'.$data['remaining_time']; ?><br>
     <?php echo '総投票数：'.$data['all_vote_count'].'票'; ?><br>
     <br>
     
@@ -53,6 +53,8 @@
     <br>
     
     <?php echo '作成者：'.$data['author_id']; ?><br>
+    <?php echo '開始日時：'.$data['start_at']; ?><br>
+    <?php echo '終了日時：'.$data['end_at']; ?><br>
     <br>
     <br>
     <a href="/">トップに戻る</a><br>
