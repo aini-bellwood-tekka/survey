@@ -14,9 +14,16 @@ use App\SvUserIdSurveyRelation;
 
 class SurveyController {
     
+    private function _error($request,$msg){
+        $data = array(
+            'user_id' => $request->session()->get('id'),
+         );
+        return view('logon', ['message' => $msg,'data' => $data]); 
+    }
+    
     public function textSearch(Request $request) {
         $logon = $request->session()->get('logon',false);
-        if($logon == false){ return view('logoff',['message' => 'ログインしてくだい。']); }
+        if($logon == false){ return $this->_error($request, 'ログインしてくだい。'); }
         
         if($request->search_type == "tag"){
             $text = '&tag='.urlencode($request->search_text);
@@ -24,83 +31,82 @@ class SurveyController {
             $text = '&text='.urlencode($request->search_text);
         }
         
-        return redirect('search?page=1&sort='.$request->sort.'&order='.$request->order.$text);
+        return redirect('search?page=1&sort=' . $request->sort . '&order=' . $request->order . $text);
     }
-    
     public function getSurveyList(Request $request) {
         
         $searchOption = array(
             'sort' => $request->sort,
             'order'=> $request->order,
             'target_user_id' => $request->session()->get('id'),
-            'search_text' => urldecode($request->text),
-            'search_tag' => urldecode($request->tag),
+            
+            'search_type' => ($request->tag != '')?'tag':'text',
         );
-        $data = $this->_getSurveyList($searchOption,$request->page,10);
+        if($request->tag != ''){
+            $searchOption['search_text'] = urldecode($request->tag);
+        }else{
+            $searchOption['search_text'] = urldecode($request->text);
+        }
+        
+        $data = $this->_getSurveyList($request,$searchOption,$request->page,10);
+        
+        if($data['error'] != ''){ return $this->_error($request,$data['error']); }
         
         //受け取ったDataに検索オプションを引き継ぐ
         $data['sort'] = $request->sort;
         $data['order'] = $request->order;
         $data['url_option'] = '&sort='.($request->sort).'&order='.($request->order).(($request->text == '')?(''):('&text='.$request->text)).(($request->tag == '')?(''):('&tag='.$request->tag));
         
-        return view('search', ['message' => '','data' => $data]);
-    }
-    private function _getSurveyList($searchOption,$page,$count){
-        
-        $page = ( $page < 1 )? 1: $page;
-        if($searchOption['search_tag'] != ''){
-            
-            //survey_tagとsurveyを内部結合。
-            //この時点でsurvey_tagとsurvey間で同じ名前の列はsurveyの値で上書きされるので注意（現状、id,created_at,updated_atが該当）
-            $tags = DB::table('survey_tag')->join('survey','survey_tag.survey_id','=','survey.id');
-            
-            //完全一致するタグを検索
-            $tags = $tags->where('name',$searchOption['search_tag'])->get();
-            
-            if($searchOption['order'] == 'o'){
-                $surveys = $tags->sortBy('updated_at')->slice( ( $page - 1 ) * $count, $count+1);
-            }else{
-                $surveys = $tags->sortByDesc('updated_at')->slice( ( $page - 1 ) * $count, $count+1);
-            }
-
-            /* LaravelのクエリビルダでJoinしようとするとうまくいかない。
-            if($searchOption['order'] == 'o'){
-                $surveys = DB::table('survey_tag')->join('survey',function ($join) use ($searchOption) {
-                    $join->on('survey_tag.survey_id','=','survey.id')
-                            ->where('survey_tag.name',$searchOption['search_tag'])
-                            ->sortBy('survey.updated_at')->slice( ( $page - 1 ) * $count, $count+1); //メソッドがないと言われる
-                    })->get();
-            }else{
-                $surveys = DB::table('survey_tag')->join('survey',function ($join) use ($searchOption) {
-                    $join->on('survey_tag.survey_id','=','survey.id')
-                            ->where('survey_tag.name',$searchOption['search_tag'])
-                            ->sortByDesc('survey.updated_at')->slice( ( $page - 1 ) * $count, $count+1); //メソッドがないと言われる
-                    })->get();
-            }
-            //var_dump($data);
-             */
-            
-            if(empty($surveys)) { return view('logon', ['message' => '質問の取得に失敗しました。(SVL000)']); }
-
-            $data = array(
-                'searchOption' => $searchOption,
-                'page' => $page,
-                'survey' => array(),
-             );
-            foreach($surveys as $sv){
-                $op_var = array(
-                    'id' => $sv->id,
-                    'text' => $sv->description,
-                    'author_id' => $sv->author_id,
-                );
-                $data['survey'][] = $op_var;
-            }
-            $data['count'] = $surveys->count();
-
-            return $data;
+        if($data['count'] > 0 ){
+            return view('search', ['message' => $data['message'],'data' => $data]);
         }
-        elseif($searchOption['sort'] == 'ms'){
+        else{
+            return view('searchempty', ['message' => $data['message'],'data' => $data]);
+        }
+    }
+    private function _SearchTag($searchOption,$page,$count){
+        
+        //survey_tagとsurveyを内部結合。
+        //この時点でsurvey_tagとsurvey間で同じ名前の列はsurveyの値で上書きされるので注意（現状、id,created_at,updated_atが該当）
+        $tags = DB::table('survey_tag')->join('survey','survey_tag.survey_id','=','survey.id');
+
+        //完全一致するタグを検索
+        $tags = $tags->where('name',$searchOption['search_text'])->get();
+
+        if($searchOption['order'] == 'o'){
+            $surveys = $tags->sortBy('updated_at')->slice( ( $page - 1 ) * $count, $count+1);
+        }else{
+            $surveys = $tags->sortByDesc('updated_at')->slice( ( $page - 1 ) * $count, $count+1);
+        }
+
+        /* LaravelのクエリビルダでJoinしようとするとうまくいかない。
+        if($searchOption['order'] == 'o'){
+            $surveys = DB::table('survey_tag')->join('survey',function ($join) use ($searchOption) {
+                $join->on('survey_tag.survey_id','=','survey.id')
+                        ->where('survey_tag.name',$searchOption['search_text'])
+                        ->sortBy('survey.updated_at')->slice( ( $page - 1 ) * $count, $count+1); //メソッドがないと言われる
+                })->get();
+        }else{
+            $surveys = DB::table('survey_tag')->join('survey',function ($join) use ($searchOption) {
+                $join->on('survey_tag.survey_id','=','survey.id')
+                        ->where('survey_tag.name',$searchOption['search_text'])
+                        ->sortByDesc('survey.updated_at')->slice( ( $page - 1 ) * $count, $count+1); //メソッドがないと言われる
+                })->get();
+        }
+        //var_dump($data);
+         */
+        $result = array(
+            'count' => $tags->count(),
+            'surveys' => $surveys,
+         );
+        return $result;
+    }
+    private function _SearchText($searchOption,$page,$count){
+        
+        $isEmpty = false;
+        if($searchOption['sort'] == 'ms'){
             //自分の投稿した質問
+            //質問DBからユーザIDをキーにしてcount件取得
             $baseSurveys = SvSurvey::where('author_id', $searchOption['target_user_id'])->get();
             
             //キーワード検索
@@ -110,24 +116,18 @@ class SurveyController {
             
         }elseif($searchOption['sort'] == 'ma'){
             //自分の回答した質問
+            //回答DBからユーザIDをキーにしてcount件取得。
             
-            //選択肢DBからユーザIDをキーにしてcount件取得。
+            $answers = SvUserIdSurveyRelation::where('user_id', $searchOption['target_user_id'])->get();
+
+            //キーワード検索
+            if($searchOption['search_text'] != ''){
+                $answers = $answers->where('description','like', '%'.$searchOption['search_text'].'%');
+            }
+            
             if($searchOption['order'] == 'o'){
-                $answers = SvUserIdSurveyRelation::where('user_id', $searchOption['target_user_id'])->get();
-                
-                //キーワード検索
-                if($searchOption['search_text'] != ''){
-                    $answers = $answers->where('description','like', '%'.$searchOption['search_text'].'%');
-                }
-                $answers = $answers->sortBy('updated_at')->slice( ( $page - 1 ) * $count, $count+1);
-                
+                $answers = $answers->sortBy('updated_at')->slice( ( $page - 1 ) * $count, $count+1);               
             }else{
-                $answers = SvUserIdSurveyRelation::where('user_id', $searchOption['target_user_id'])->get();
-                
-                //キーワード検索
-                if($searchOption['search_text'] != ''){
-                    $answers = $answers->where('description','like', '%'.$searchOption['search_text'].'%');
-                }
                 $answers = $answers->sortByDesc('updated_at')->slice( ( $page - 1 ) * $count, $count+1);
             }
             
@@ -136,8 +136,14 @@ class SurveyController {
             foreach($answers as $an){
                 $answerIdArray[] = $an->survey_id;
             }
-            $baseSurveys = SvSurvey::whereIn('id', $answerIdArray);
-            
+            if(empty($answerIdArray)){
+                // 空のCollectionを返すいい手が思いつかない…。
+                $baseSurveys = SvSurvey::all();
+                $isEmpty = true;
+            }
+            else{
+                $baseSurveys = SvSurvey::whereIn('id', $answerIdArray);
+            }
         }else{
             //全部取ってくる
             $baseSurveys = SvSurvey::all();
@@ -155,14 +161,64 @@ class SurveyController {
             $surveys = $baseSurveys->sortByDesc('created_at')->slice( ( $page - 1 ) * $count, $count+1);
         }
         
-        if(empty($surveys)) { return view('logon', ['message' => '質問の取得に失敗しました。(SVL000)']); }
+        $result = array(
+            'count' => (($isEmpty)? 0:$baseSurveys->count()),
+            'surveys' => $surveys,
+         );
+        return $result;
+    }  
+    private function _getSurveyList($request,$searchOption,$page,$count){
+        
+        $page = ( $page < 1 )? 1: $page;
+        
+        $message = '';
+        if($searchOption['search_type'] == 'tag'){
+            $result = $this->_SearchTag($searchOption,$page,$count);
+            if($result['count'] > 0){
+                $message = ($searchOption['search_text'] == '')? '':'タグ「'.$searchOption['search_text'].'」が設定された質問の一覧です。';
+            }else{
+                $message = 'タグ「'.$searchOption['search_text'].'」が設定された質問は見つかりませんでした。';
+            }
+        }
+        else{
+            $result = $this->_SearchText($searchOption,$page,$count);
+            if($searchOption['sort'] == 'ms'){
+                if($result['count'] > 0){
+                    $message = 'あなたが作成した質問の一覧です。';
+                }
+                else{
+                    $message = 'あなたはまだ質問を作成していません。';
+                }
+            }
+            elseif($searchOption['sort'] == 'ma'){
+                if($result['count'] > 0){
+                    $message = 'あなたが回答した質問の一覧です。';
+                }
+                else{
+                    $message = 'あなたはまだ質問に回答していません。';
+                }
+            }else{
+                if($result['count'] > 0){
+                    $message = ($searchOption['search_text'] == '')? '':'キーワード「'.$searchOption['search_text'].'」に一致する質問の一覧です。';
+                }
+                else{
+                    $message = 'キーワード「'.$searchOption['search_text'].'」に一致する質問は見つかりませんでした。';
+                }
+            }
+        }
         
         $data = array(
             'searchOption' => $searchOption,
             'page' => $page,
             'survey' => array(),
+            'error' =>'',
+            'message' => $message,
          );
-        foreach($surveys as $sv){
+        if(empty($result['surveys'])) { 
+            $data['error'] = '質問の取得に失敗しました。(SVL000)';
+            return $data; 
+        }
+        foreach($result['surveys'] as $sv){
             $op_var = array(
                 'id' => $sv->id,
                 'text' => $sv->description,
@@ -177,15 +233,15 @@ class SurveyController {
             );
             $data['survey'][] = $op_var;
         }
-        $data['count'] = $baseSurveys->count();
+        $data['count'] = $result['count'];
         
         return $data;
-    }
+    }  
     
     public function getSurvey(Request $request) {
         
         $logon = $request->session()->get('logon',false);
-        if($logon == false){ return view('logoff',['message' => 'ログインしてくだい。']); }
+        if($logon == false){ return $this->_error($request, 'ログインしてくだい。'); }
         
        if($request->error == 1){
             $message = 'タグの登録に失敗しました。(E004)';
@@ -224,7 +280,7 @@ class SurveyController {
         $options = SvSurveyOptions::where('survey_id', $survey_id)->get();
         $tags = SvSurveyTag::where('survey_id', $survey_id)->get();
         
-        if(empty($survey) || empty($options) || empty($tags)) { return view('logon', ['message' => '質問の取得に失敗しました。(E002)']); }
+        if(empty($survey) || empty($options) || empty($tags)) { return $this->_error($request, '質問の取得に失敗しました。(E002)'); }
         
         $votes = SvUserIdSurveyRelation::where('survey_id', $survey_id)->get();
         $all_vote_count = $votes->count() - $votes->where('number', -1)->count();
@@ -280,7 +336,7 @@ class SurveyController {
 
     public function surveyCreate(Request $request) {
         $logon = $request->session()->get('logon',false);
-        if($logon == false){ return view('logoff',['message' => 'ログインしてくだい。']); }
+        if($logon == false){ return $this->_error($request, 'ログインしてくだい。'); }
         
         $id = $request->session()->get('id');
 
@@ -312,7 +368,7 @@ class SurveyController {
             'end_at' => $timelimit,
         );
         $survey = SvSurvey::create($postSurvey);
-        if(empty($survey)){ return view('logon', ['message' => '質問の作成に失敗しました。(E002)']); }
+        if(empty($survey)){ return $this->_error($request, '質問の作成に失敗しました。(E002)'); }
 
         //選択肢の登録
         $postSuccess = true;
@@ -332,7 +388,7 @@ class SurveyController {
         if($postSuccess){
             return redirect('survey?id='.$survey->id);
         }else{
-            return view('logon', ['message' => '質問の作成に失敗しました。(E002)']);
+            return $this->_error($request, '質問の作成に失敗しました。(E002)');
         }
     }
     public function getSurveyCreateForm(Request $request) {
@@ -342,7 +398,7 @@ class SurveyController {
 
     public function vote(Request $request) {
         $logon = $request->session()->get('logon',false);
-        if($logon == false){ return view('logoff',['message' => 'ログインしてくだい。']); }
+        if($logon == false){ return $this->_error($request, 'ログインしてくだい。'); }
         
         $user_id = $request->session()->get('id');
         $survey_id = $request->id;
@@ -369,30 +425,41 @@ class SurveyController {
         
     }
     
-    public function createTag(Request $request) {
+    public function webCreateTag(Request $request) {
         $logon = $request->session()->get('logon',false);
-        if($logon == false){ return view('logoff',['message' => 'ログインしてくだい。']); }
+        if($logon == false){ return $this->_error($request, 'ログインしてくだい。'); }
         
-        $id = $request->session()->get('id');
-        
-        //質問の登録
-        $postSurvey = array(
-            'name' => $request->name,
-            'lock_type' => $request->lock_type,
-            'survey_id' => $request->survey_id,
-        );
-        $survey = SvSurveyTag::create($postSurvey);
-        if(!empty($survey)){
+        if($this->_createTag($request->name, $request->lock_type, $request->survey_id)){
             return redirect('survey?id='.$request->survey_id);
         }else{
             return redirect('survey?id='.$request->survey_id.'&error=1');
         }
     }
+    public function _createTag($name, $lock_type, $survey_id) {
+        
+        $postSurvey = array(
+            'name' => $name,
+            'lock_type' => $lock_type,
+            'survey_id' => $survey_id,
+        );
+        if(!empty(SvSurveyTag::create($postSurvey))){
+            return true;
+        }else{
+            return false;
+        }
+    }
+    
+    
     public function eraseTag(Request $request) {
         $logon = $request->session()->get('logon',false);
-        if($logon == false){ return view('logoff',['message' => 'ログインしてくだい。']); }
+        if($logon == false){ return $this->_error($request, 'ログインしてくだい。'); }
         
-        $survey = SvSurveyTag::destroy($request->tag_id);
+        $this->_eraseTag($request->tag_id);
         return redirect('survey?id='.$request->survey_id);
     }
+    public function _eraseTag(string $tag_id) {
+        $survey = SvSurveyTag::destroy($tag_id);
+        return true;
+    }
+    
 }

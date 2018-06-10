@@ -17,10 +17,10 @@
     <form method="post" action="/search">
         {{ csrf_field() }}
         <select name="search_type">
-        <option value="tag">タグ検索</option>
-        <option value="text">キーワード検索</option>
+        <option value="tag" <?php if($data['searchOption']['search_type'] == 'tag'){echo("selected");}?>>タグ検索</option>
+        <option value="text" <?php if($data['searchOption']['search_type'] == 'text'){echo("selected");}?>>キーワード検索</option>
         </select>
-        <input type="text" name="search_text" size="40">
+        <input type="text" name="search_text" size="40" value=<?= $data['searchOption']['search_text'] ?>>
         <input type="hidden" name="sort" value=<?= $data['sort'] ?>>
         <input type="hidden" name="order" value=<?= $data['order'] ?>>
         <input type="submit" value="検索">
