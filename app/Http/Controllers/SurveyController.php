@@ -25,28 +25,23 @@ class SurveyController {
         $logon = $request->session()->get('logon',false);
         if($logon == false){ return $this->_error($request, 'ログインしてくだい。'); }
         
-        if($request->search_type == "tag"){
-            $text = '&tag='.urlencode($request->search_text);
-        }else{
-            $text = '&text='.urlencode($request->search_text);
-        }
-        
-        return redirect('search?page=1&sort=' . $request->sort . '&order=' . $request->order . $text);
+        $sort = '&sort=' . $request->sort;
+        $order = '&order=' . $request->order;
+        $search = (($request->text == '')?(''):('&search='.urlencode($request->search)));
+        $text = (($request->text == '')?(''):('&text='.urlencode($request->text)));
+                
+        return redirect('search?page=1' . $sort . $order . $search . $text);
     }
     public function getSurveyList(Request $request) {
         
         $searchOption = array(
-            'sort' => $request->sort,
-            'order'=> $request->order,
             'target_user_id' => $request->session()->get('id'),
             
-            'search_type' => ($request->tag != '')?'tag':'text',
+            'sort' => $request->sort,
+            'order'=> $request->order,
+            'search' => $request->search,
+            'text' => urldecode($request->text),
         );
-        if($request->tag != ''){
-            $searchOption['search_text'] = urldecode($request->tag);
-        }else{
-            $searchOption['search_text'] = urldecode($request->text);
-        }
         
         $data = $this->_getSurveyList($request,$searchOption,$request->page,10);
         
@@ -55,7 +50,13 @@ class SurveyController {
         //受け取ったDataに検索オプションを引き継ぐ
         $data['sort'] = $request->sort;
         $data['order'] = $request->order;
-        $data['url_option'] = '&sort='.($request->sort).'&order='.($request->order).(($request->text == '')?(''):('&text='.$request->text)).(($request->tag == '')?(''):('&tag='.$request->tag));
+        
+        $sort = '&sort='.($request->sort);
+        $order = '&order='.($request->order);
+        $search = (($request->text == '')?(''):('&search='.urlencode($request->search)));
+        $text = (($request->text == '')?(''):('&text='.urlencode($request->text)));
+        
+        $data['url_option'] = $sort . $order. $search . $text;
         
         if($data['count'] > 0 ){
             return view('search', ['message' => $data['message'],'data' => $data]);
@@ -71,7 +72,7 @@ class SurveyController {
         $tags = DB::table('survey_tag')->join('survey','survey_tag.survey_id','=','survey.id');
 
         //完全一致するタグを検索
-        $tags = $tags->where('name',$searchOption['search_text'])->get();
+        $tags = $tags->where('name',$searchOption['text'])->get();
 
         if($searchOption['order'] == 'o'){
             $surveys = $tags->sortBy('updated_at')->slice( ( $page - 1 ) * $count, $count+1);
@@ -83,13 +84,13 @@ class SurveyController {
         if($searchOption['order'] == 'o'){
             $surveys = DB::table('survey_tag')->join('survey',function ($join) use ($searchOption) {
                 $join->on('survey_tag.survey_id','=','survey.id')
-                        ->where('survey_tag.name',$searchOption['search_text'])
+                        ->where('survey_tag.name',$searchOption['text'])
                         ->sortBy('survey.updated_at')->slice( ( $page - 1 ) * $count, $count+1); //メソッドがないと言われる
                 })->get();
         }else{
             $surveys = DB::table('survey_tag')->join('survey',function ($join) use ($searchOption) {
                 $join->on('survey_tag.survey_id','=','survey.id')
-                        ->where('survey_tag.name',$searchOption['search_text'])
+                        ->where('survey_tag.name',$searchOption['text'])
                         ->sortByDesc('survey.updated_at')->slice( ( $page - 1 ) * $count, $count+1); //メソッドがないと言われる
                 })->get();
         }
@@ -110,8 +111,8 @@ class SurveyController {
             $baseSurveys = SvSurvey::where('author_id', $searchOption['target_user_id'])->get();
             
             //キーワード検索
-            if($searchOption['search_text'] != ''){
-                $baseSurveys = $baseSurveys->where('description','like', '%'.$searchOption['search_text'].'%');
+            if($searchOption['text'] != ''){
+                $baseSurveys = $baseSurveys->where('description','like', '%'.$searchOption['text'].'%');
             }
             
         }elseif($searchOption['sort'] == 'ma'){
@@ -121,8 +122,8 @@ class SurveyController {
             $answers = SvUserIdSurveyRelation::where('user_id', $searchOption['target_user_id'])->get();
 
             //キーワード検索
-            if($searchOption['search_text'] != ''){
-                $answers = $answers->where('description','like', '%'.$searchOption['search_text'].'%');
+            if($searchOption['text'] != ''){
+                $answers = $answers->where('description','like', '%'.$searchOption['text'].'%');
             }
             
             if($searchOption['order'] == 'o'){
@@ -149,8 +150,8 @@ class SurveyController {
             $baseSurveys = SvSurvey::all();
             
             //キーワード検索
-            if($searchOption['search_text'] != ''){
-                $baseSurveys = $baseSurveys->where('description',$searchOption['search_text']);
+            if($searchOption['text'] != ''){
+                $baseSurveys = $baseSurveys->where('description',$searchOption['text']);
             }
         }
         
@@ -172,12 +173,12 @@ class SurveyController {
         $page = ( $page < 1 )? 1: $page;
         
         $message = '';
-        if($searchOption['search_type'] == 'tag'){
+        if($searchOption['search'] == 'tag'){
             $result = $this->_SearchTag($searchOption,$page,$count);
             if($result['count'] > 0){
-                $message = ($searchOption['search_text'] == '')? '':'タグ「'.$searchOption['search_text'].'」が設定された質問の一覧です。';
+                $message = ($searchOption['text'] == '')? '':'タグ「'.$searchOption['text'].'」が設定された質問の一覧です。';
             }else{
-                $message = 'タグ「'.$searchOption['search_text'].'」が設定された質問は見つかりませんでした。';
+                $message = 'タグ「'.$searchOption['text'].'」が設定された質問は見つかりませんでした。';
             }
         }
         else{
@@ -199,10 +200,10 @@ class SurveyController {
                 }
             }else{
                 if($result['count'] > 0){
-                    $message = ($searchOption['search_text'] == '')? '':'キーワード「'.$searchOption['search_text'].'」に一致する質問の一覧です。';
+                    $message = ($searchOption['text'] == '')? '':'キーワード「'.$searchOption['text'].'」に一致する質問の一覧です。';
                 }
                 else{
-                    $message = 'キーワード「'.$searchOption['search_text'].'」に一致する質問は見つかりませんでした。';
+                    $message = 'キーワード「'.$searchOption['text'].'」に一致する質問は見つかりませんでした。';
                 }
             }
         }

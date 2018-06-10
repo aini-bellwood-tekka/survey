@@ -34,7 +34,7 @@
     <?php foreach ($data['tag'] as $tag){ ?>
         <form method="post" action="/tagerase" style="display:inline">
             {{ csrf_field() }}
-            <a href=<?= "/search?page=1&sort=d&order=n&tag=".$tag['name'] ?>><?php echo $tag['name']; ?></a>
+            <a href=<?= "/search?page=1&sort=d&order=n&search=tag&text=".$tag['name'] ?>><?php echo $tag['name']; ?></a>
             <input type="hidden" name="survey_id" value=<?= $data['survey_id'] ?>>
             <input type="hidden" name="tag_id" value=<?= $tag['tag_id'] ?>>
             <input type="hidden" name="lock_type" value=<?= $tag['lock_type'] ?>>

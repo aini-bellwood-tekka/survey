@@ -12,21 +12,20 @@
 @endsection
 @section('content')
     <h1>あんけーと</h1>
-    <p><?php echo $message; ?></p>
-    
     <form method="post" action="/search">
         {{ csrf_field() }}
-        <select name="search_type">
-        <option value="tag" <?php if($data['searchOption']['search_type'] == 'tag'){echo("selected");}?>>タグ検索</option>
-        <option value="text" <?php if($data['searchOption']['search_type'] == 'text'){echo("selected");}?>>キーワード検索</option>
+        <select name="search">
+        <option value="tag" <?php if($data['searchOption']['search'] == 'tag'){echo("selected");}?>>タグ検索</option>
+        <option value="text" <?php if($data['searchOption']['search'] == 'text'){echo("selected");}?>>キーワード検索</option>
         </select>
-        <input type="text" name="search_text" size="40" value=<?= $data['searchOption']['search_text'] ?>>
+        <input type="text" name="text" size="40" value=<?= $data['searchOption']['text'] ?>>
         <input type="hidden" name="sort" value=<?= $data['sort'] ?>>
         <input type="hidden" name="order" value=<?= $data['order'] ?>>
         <input type="submit" value="検索">
     </form>
     <br>
-    
+    <p><?php echo $message; ?></p>
+    <br>
     <?php foreach ($data['survey'] as $sv){ ?>
     <a href=<?= 'survey?id='.$sv['id'] ?>><?php echo $sv['text'];?></a><br>
     <?php echo (($sv['is_end'])?'　投票は締め切っています。':('　残り時間：'.$sv['remaining_time'])).'　作成者：'.$sv['author_id'].'　作成日時：'.$sv['created_at']; ?><br>
