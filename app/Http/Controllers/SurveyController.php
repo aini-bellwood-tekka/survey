@@ -14,25 +14,52 @@ use App\SvUserIdSurveyRelation;
 
 class SurveyController {
     
-    private function _error($request,$msg){
+    private function _webError($request,$msg){
         $data = array(
             'user_id' => $request->session()->get('id'),
          );
         return view('logon', ['message' => $msg,'data' => $data]); 
     }
+    private function _apiError($request,$msg){
+        $data = array(
+            'user_id' => $request->session()->get('id'),
+            'error' =>'',
+            'message' => $msg,
+         );
+        return $data; 
+    }
     
-    public function textSearch(Request $request) {
+    public function webTextSearch(Request $request) {
         $logon = $request->session()->get('logon',false);
-        if($logon == false){ return $this->_error($request, 'ログインしてくだい。'); }
+        if($logon == false){ return $this->_webError($request, 'ログインしてくだい。'); }
         
         $sort = '&sort=' . $request->sort;
         $order = '&order=' . $request->order;
-        $search = (($request->text == '')?(''):('&search='.urlencode($request->search)));
+        $search = (($request->text == '')?(''):('&search='.$request->search));
         $text = (($request->text == '')?(''):('&text='.urlencode($request->text)));
                 
         return redirect('search?page=1' . $sort . $order . $search . $text);
     }
-    public function getSurveyList(Request $request) {
+    public function webGetSurveyList(Request $request) {
+        $logon = $request->session()->get('logon',false);
+        if($logon == false){ return $this->_webError($request, 'ログインしてくだい。'); }
+        
+        $data = $this->_getSurveyList($request);
+        
+        if($data['count'] > 0 ){
+            return view('search', ['message' => $data['message'],'data' => $data]);
+        }
+        else{
+            return view('searchempty', ['message' => $data['message'],'data' => $data]);
+        }
+    }
+    public function apiGetSurveyList(Request $request) {
+        $logon = $request->session()->get('logon',false);
+        if($logon == false){ return _apiError($request, 'ログインしてくだい。'); }
+        
+        return $this->_getSurveyList($request);
+    }
+    private function _getSurveyList(Request $request){
         
         $searchOption = array(
             'target_user_id' => $request->session()->get('id'),
@@ -43,7 +70,7 @@ class SurveyController {
             'text' => urldecode($request->text),
         );
         
-        $data = $this->_getSurveyList($request,$searchOption,$request->page,10);
+        $data = $this->_search($request,$searchOption,$request->page,10);
         
         if($data['error'] != ''){ return $this->_error($request,$data['error']); }
         
@@ -53,19 +80,14 @@ class SurveyController {
         
         $sort = '&sort='.($request->sort);
         $order = '&order='.($request->order);
-        $search = (($request->text == '')?(''):('&search='.urlencode($request->search)));
+        $search = (($request->text == '')?(''):('&search='.$request->search));
         $text = (($request->text == '')?(''):('&text='.urlencode($request->text)));
         
         $data['url_option'] = $sort . $order. $search . $text;
         
-        if($data['count'] > 0 ){
-            return view('search', ['message' => $data['message'],'data' => $data]);
-        }
-        else{
-            return view('searchempty', ['message' => $data['message'],'data' => $data]);
-        }
+        return $data;
     }
-    private function _SearchTag($searchOption,$page,$count){
+    private function _searchTag($searchOption,$page,$count){
         
         //survey_tagとsurveyを内部結合。
         //この時点でsurvey_tagとsurvey間で同じ名前の列はsurveyの値で上書きされるので注意（現状、id,created_at,updated_atが該当）
@@ -102,7 +124,7 @@ class SurveyController {
          );
         return $result;
     }
-    private function _SearchText($searchOption,$page,$count){
+    private function _searchText($searchOption,$page,$count){
         
         $isEmpty = false;
         if($searchOption['sort'] == 'ms'){
@@ -168,13 +190,13 @@ class SurveyController {
          );
         return $result;
     }  
-    private function _getSurveyList($request,$searchOption,$page,$count){
+    private function _search($request,$searchOption,$page,$count){
         
         $page = ( $page < 1 )? 1: $page;
         
         $message = '';
         if($searchOption['search'] == 'tag'){
-            $result = $this->_SearchTag($searchOption,$page,$count);
+            $result = $this->_searchTag($searchOption,$page,$count);
             if($result['count'] > 0){
                 $message = ($searchOption['text'] == '')? '':'タグ「'.$searchOption['text'].'」が設定された質問の一覧です。';
             }else{
@@ -182,7 +204,7 @@ class SurveyController {
             }
         }
         else{
-            $result = $this->_SearchText($searchOption,$page,$count);
+            $result = $this->_searchText($searchOption,$page,$count);
             if($searchOption['sort'] == 'ms'){
                 if($result['count'] > 0){
                     $message = 'あなたが作成した質問の一覧です。';
@@ -239,10 +261,10 @@ class SurveyController {
         return $data;
     }  
     
-    public function getSurvey(Request $request) {
+    public function webGetSurvey(Request $request) {
         
         $logon = $request->session()->get('logon',false);
-        if($logon == false){ return $this->_error($request, 'ログインしてくだい。'); }
+        if($logon == false){ return $this->_webError($request, 'ログインしてくだい。'); }
         
        if($request->error == 1){
             $message = 'タグの登録に失敗しました。(E004)';
@@ -264,6 +286,24 @@ class SurveyController {
         }
         
         return $this->_getSurveyView($message,$request->session()->get('id'),$request->id);
+    }
+    public function apiGetSurvey(Request $request) {
+        $logon = $request->session()->get('logon',false);
+        if($logon == false){ return _apiError($request, 'ログインしてくだい。'); }
+        
+        $survey_id = $request->id;
+        $user_id = $request->session()->get('id');
+        
+        $votes = SvUserIdSurveyRelation::where('survey_id', $survey_id)->where('user_id', $user_id)->first();
+        $survey = SvSurvey::where('id', $survey_id)->first();
+        
+        $voted = !empty($votes);
+        $voted = $voted or ($survey->author_id == $user_id);
+        $voted = $voted or Carbon::parse($survey->end_at)->isPast();
+        
+        $data =  $this->_getSurvey($voted,$user_id,$survey_id);
+        
+        return $data;
     }
     private function _getSurveyView($massage,$user_id,$survey_id){
         //質問view取得関数
@@ -334,11 +374,26 @@ class SurveyController {
         
         return $data;
     }
-
-    public function surveyCreate(Request $request) {
+    
+    public function webSurveyCreate(Request $request) {
         $logon = $request->session()->get('logon',false);
-        if($logon == false){ return $this->_error($request, 'ログインしてくだい。'); }
+        if($logon == false){ return $this->_webError($request, 'ログインしてくだい。'); }
         
+        $data = $this->_surveyCreate($request);
+        
+        if($data->success){
+            return redirect('survey?id='.$data->surveyId);
+        }else{
+            return $this->_error($request, '質問の作成に失敗しました。(E002)');
+        }
+    }
+    public function apiSurveyCreate(Request $request) {
+        $logon = $request->session()->get('logon',false);
+        if($logon == false){ return _apiError($request, 'ログインしてくだい。'); }
+
+        return $this->_surveyCreate($request);
+    }
+    private function _surveyCreate(Request $request){
         $id = $request->session()->get('id');
 
         $limit = $request->timelimit;
@@ -386,21 +441,38 @@ class SurveyController {
             }
         }
         
-        if($postSuccess){
-            return redirect('survey?id='.$survey->id);
-        }else{
-            return $this->_error($request, '質問の作成に失敗しました。(E002)');
-        }
+        $data = array(
+            'success' => $postSuccess,
+            'surveyId' => $survey->id,
+        );
+        return $data;
     }
-    public function getSurveyCreateForm(Request $request) {
+    
+    public function webGetSurveyCreateForm(Request $request) {
         
         return view('surveycreate', ['message' => '']);
     }
-
-    public function vote(Request $request) {
+    
+    public function webVote(Request $request) {
         $logon = $request->session()->get('logon',false);
-        if($logon == false){ return $this->_error($request, 'ログインしてくだい。'); }
+        if($logon == false){ return $this->_webError($request, 'ログインしてくだい。'); }
         
+        $data = $this->_vote($request);
+        
+        if($data->success){ 
+            return redirect('survey?id='.$request->id.'&vote=2');
+        }
+        else{
+            return redirect('survey?id='.$request->id.'&vote=1');
+        }
+    }
+    public function apiVote(Request $request) {
+        $logon = $request->session()->get('logon',false);
+        if($logon == false){ return _apiError($request, 'ログインしてくだい。'); }
+        
+        return $this->_vote($request);
+    }
+    private function _vote(Request $request) {
         $user_id = $request->session()->get('id');
         $survey_id = $request->id;
         $votes = SvUserIdSurveyRelation::where('user_id', $user_id)->where('survey_id', $survey_id)->first();
@@ -417,50 +489,77 @@ class SurveyController {
         );
         
         $vote = SvUserIdSurveyRelation::create($postVote);
-        if(empty($vote)){ 
-            return redirect('survey?id='.$request->id.'&vote=2');
-        }
-        else{
-            return redirect('survey?id='.$request->id.'&vote=1');
-        }
         
+        $data = array(
+            'success' => !empty($vote),
+        );
+        return $data;
     }
     
     public function webCreateTag(Request $request) {
         $logon = $request->session()->get('logon',false);
-        if($logon == false){ return $this->_error($request, 'ログインしてくだい。'); }
+        if($logon == false){ return $this->_webError($request, 'ログインしてくだい。'); }
         
-        if($this->_createTag($request->name, $request->lock_type, $request->survey_id)){
+        $data = $this->_createTag($request);
+        
+        if($data->success){
             return redirect('survey?id='.$request->survey_id);
         }else{
             return redirect('survey?id='.$request->survey_id.'&error=1');
         }
     }
-    public function _createTag($name, $lock_type, $survey_id) {
+    public function apiCreateTag(Request $request) {
+        $logon = $request->session()->get('logon',false);
+        if($logon == false){ return _apiError($request, 'ログインしてくだい。'); }
+        
+        $data = $this->_createTag($request);
+        
+        return $data;
+    }
+    public function _createTag(Request $request) {
         
         $postSurvey = array(
-            'name' => $name,
-            'lock_type' => $lock_type,
-            'survey_id' => $survey_id,
+            'name' => $request->name,
+            'lock_type' => $request->lock_type,
+            'survey_id' => $request->survey_id,
         );
-        if(!empty(SvSurveyTag::create($postSurvey))){
-            return true;
-        }else{
-            return false;
-        }
+        
+        $data = array(
+            'success' => !empty(SvSurveyTag::create($postSurvey)),
+        );
+        return $data;
     }
     
-    
-    public function eraseTag(Request $request) {
+    public function webEraseTag(Request $request) {
         $logon = $request->session()->get('logon',false);
-        if($logon == false){ return $this->_error($request, 'ログインしてくだい。'); }
+        if($logon == false){ return $this->_webError($request, 'ログインしてくだい。'); }
         
-        $this->_eraseTag($request->tag_id);
+        $data = $this->_eraseTag($request);
+        
         return redirect('survey?id='.$request->survey_id);
     }
-    public function _eraseTag(string $tag_id) {
-        $survey = SvSurveyTag::destroy($tag_id);
-        return true;
+    public function apiEraseTag(Request $request) {
+        $logon = $request->session()->get('logon',false);
+        if($logon == false){ return _apiError($request, 'ログインしてくだい。'); }
+        
+        $data = $this->_eraseTag($request);
+        
+        return $data;
+    }
+    public function _eraseTag(Request $request) {
+        $survey = SvSurveyTag::destroy($request->tag_id);
+        
+        $data = array(
+            'success' => true,
+        );
+        return $data;
+    }
+    
+    public function getDebugView(Request $request) {
+        $logon = $request->session()->get('logon',false);
+        if($logon == false){ return $this->_webError($request, 'ログインしてくだい。'); }
+        
+        return view('debug', ['message' => '']);
     }
     
 }

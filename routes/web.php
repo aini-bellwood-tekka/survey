@@ -6,17 +6,27 @@ Route::post('/usercrate', 'UserController@userCrate');
 Route::post('/login', 'UserController@userLogin');
 Route::get('/logoff', 'UserController@userLogoff');
 
-Route::get('/search', 'SurveyController@getSurveyList');
-Route::post('/search', 'SurveyController@textSearch');
+Route::get('/search', 'SurveyController@webGetSurveyList');
+Route::post('/search', 'SurveyController@webTextSearch');
+Route::get('/api/search', 'SurveyController@apiGetSurveyList');
 
-Route::get('/survey', 'SurveyController@getSurvey');
+Route::get('/survey', 'SurveyController@webGetSurvey');
+Route::get('/api/survey', 'SurveyController@apiGetSurvey');
 
-//Route::get('/surveycrate', 'SurveyController@getSurvey');
+//Route::get('/surveycrate', 'SurveyController@webGetSurvey');
 
-Route::get('/surveycreate', 'SurveyController@getSurveyCreateForm');
-Route::post('/surveycreate', 'SurveyController@surveyCreate');
+Route::get('/surveycreate', 'SurveyController@webGetSurveyCreateForm');
+Route::post('/surveycreate', 'SurveyController@webSurveyCreate');
+Route::post('/api/surveycreate', 'SurveyController@apiSurveyCreate');
+
 
 Route::post('/tagcreate', 'SurveyController@webCreateTag');
-Route::post('/tagerase', 'SurveyController@eraseTag');
+Route::post('/api/tagcreate', 'SurveyController@apiCreateTag');
 
-Route::post('/vote', 'SurveyController@vote');
+Route::post('/tagerase', 'SurveyController@webEraseTag');
+Route::post('/api/tagerase', 'SurveyController@apiEraseTag');
+
+Route::post('/vote', 'SurveyController@webVote');
+Route::post('/api/vote', 'SurveyController@apiVote');
+
+Route::get('/debug', 'SurveyController@getDebugView');
