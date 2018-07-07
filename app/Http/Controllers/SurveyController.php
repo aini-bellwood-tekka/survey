@@ -381,21 +381,28 @@ class SurveyController {
         
         $data = $this->_surveyCreate($request);
         
-        if($data->success){
-            return redirect('survey?id='.$data->surveyId);
+        if($data['success']){
+            return redirect('survey?id='.$data['survey_id']);
         }else{
-            return $this->_error($request, '質問の作成に失敗しました。(E002)');
+            return $this->_webError($request, $data['message']);
         }
     }
     public function apiSurveyCreate(Request $request) {
         $logon = $request->session()->get('logon',false);
         if($logon == false){ return _apiError($request, 'ログインしてくだい。'); }
 
-        return $this->_surveyCreate($request);
+        $request['option'] = json_decode($request->jsonoption);
+        
+        if($data['success']){
+            return $data;
+        }else{
+            return $this->apiError($request, $data['message']);
+        }
     }
     private function _surveyCreate(Request $request){
         $id = $request->session()->get('id');
 
+        /*
         $limit = $request->timelimit;
         if(     $limit == '1h'){    $timelimit = Carbon::now()->addSecond(10);  }
         elseif( $limit == '3h'){    $timelimit = Carbon::now()->addSecond(30);  }
@@ -404,7 +411,9 @@ class SurveyController {
         elseif( $limit == '3d'){    $timelimit = Carbon::now()->addSecond(3*60);  }
         elseif( $limit == '7d'){    $timelimit = Carbon::now()->addSecond(7*60);  }
         else{$timelimit = Carbon::now();}
-        /*
+        */
+        
+        $limit = $request->timelimit;
         if(     $limit == '1h'){    $timelimit = Carbon::now()->addHour(1);  }
         elseif( $limit == '3h'){    $timelimit = Carbon::now()->addHour(3);  }
         elseif( $limit == '6h'){    $timelimit = Carbon::now()->addHour(6);  }
@@ -412,7 +421,12 @@ class SurveyController {
         elseif( $limit == '3d'){    $timelimit = Carbon::now()->addDay(3);  }
         elseif( $limit == '7d'){    $timelimit = Carbon::now()->addDay(7);  }
         else{$timelimit = Carbon::now();}
-        */
+        
+        $data = array(
+            'success' => false,
+            'survey_id' => 1,
+            'message' =>''
+        );
         
         //質問の登録
         $question = $request->question;
@@ -424,7 +438,7 @@ class SurveyController {
             'end_at' => $timelimit,
         );
         $survey = SvSurvey::create($postSurvey);
-        if(empty($survey)){ return $this->_error($request, '質問の作成に失敗しました。(E002)'); }
+        if(empty($survey)){ $data['message'] = '質問の作成に失敗しました。(E002)'; return $data; }
 
         //選択肢の登録
         $postSuccess = true;
@@ -441,10 +455,9 @@ class SurveyController {
             }
         }
         
-        $data = array(
-            'success' => $postSuccess,
-            'surveyId' => $survey->id,
-        );
+        $data['success'] = $postSuccess;
+        $data['survey_id'] = $survey->id;
+        
         return $data;
     }
     
@@ -453,56 +466,13 @@ class SurveyController {
         return view('surveycreate', ['message' => '']);
     }
     
-    public function webVote(Request $request) {
-        $logon = $request->session()->get('logon',false);
-        if($logon == false){ return $this->_webError($request, 'ログインしてくだい。'); }
-        
-        $data = $this->_vote($request);
-        
-        if($data->success){ 
-            return redirect('survey?id='.$request->id.'&vote=2');
-        }
-        else{
-            return redirect('survey?id='.$request->id.'&vote=1');
-        }
-    }
-    public function apiVote(Request $request) {
-        $logon = $request->session()->get('logon',false);
-        if($logon == false){ return _apiError($request, 'ログインしてくだい。'); }
-        
-        return $this->_vote($request);
-    }
-    private function _vote(Request $request) {
-        $user_id = $request->session()->get('id');
-        $survey_id = $request->id;
-        $votes = SvUserIdSurveyRelation::where('user_id', $user_id)->where('survey_id', $survey_id)->first();
-        if(!empty($votes)){ return redirect('survey?id='.$request->id.'&vote=2'); }
-        
-        $survey = SvSurvey::where('id', $survey_id)->first();
-        if(empty($survey)){ return redirect('survey?id='.$request->id.'&vote=3'); }
-        if(Carbon::parse($survey->end_at)->isPast()){ return redirect('survey?id='.$request->id.'&vote=4'); }
-        
-        $postVote = array(
-            'user_id' => $user_id,
-            'survey_id' => $survey_id,
-            'number' => $request->option
-        );
-        
-        $vote = SvUserIdSurveyRelation::create($postVote);
-        
-        $data = array(
-            'success' => !empty($vote),
-        );
-        return $data;
-    }
-    
     public function webCreateTag(Request $request) {
         $logon = $request->session()->get('logon',false);
         if($logon == false){ return $this->_webError($request, 'ログインしてくだい。'); }
         
         $data = $this->_createTag($request);
         
-        if($data->success){
+        if($data['success']){
             return redirect('survey?id='.$request->survey_id);
         }else{
             return redirect('survey?id='.$request->survey_id.'&error=1');
@@ -521,11 +491,11 @@ class SurveyController {
         $postSurvey = array(
             'name' => $request->name,
             'lock_type' => $request->lock_type,
-            'survey_id' => $request->survey_id,
+            'survey_id' => $request->survey_id
         );
-        
+                
         $data = array(
-            'success' => !empty(SvSurveyTag::create($postSurvey)),
+            'success' => !(empty(SvSurveyTag::create($postSurvey)))
         );
         return $data;
     }
@@ -552,6 +522,47 @@ class SurveyController {
         $data = array(
             'success' => true,
         );
+        return $data;
+    }
+    
+    public function webVote(Request $request) {
+        $logon = $request->session()->get('logon',false);
+        if($logon == false){ return $this->_webError($request, 'ログインしてくだい。'); }
+        
+        $data = $this->_vote($request);
+        return redirect('survey?id='.$request->id.'&vote='.$data['vote']);
+    }
+    public function apiVote(Request $request) {
+        $logon = $request->session()->get('logon',false);
+        if($logon == false){ return _apiError($request, 'ログインしてくだい。'); }
+        
+        return $this->_vote($request);
+    }
+    private function _vote(Request $request) {
+        $user_id = $request->session()->get('id');
+        $survey_id = $request->id;
+        
+        $data = array(
+            'success' => false,
+            'vote' => '1'
+        );
+        
+        $votes = SvUserIdSurveyRelation::where('user_id', $user_id)->where('survey_id', $survey_id)->first();
+        if(!empty($votes)){ $data['vote'] = '2'; return $data; }
+        
+        $survey = SvSurvey::where('id', $survey_id)->first();
+        if(empty($survey)){ $data['vote'] = '3'; return $data; }
+        
+        if(Carbon::parse($survey->end_at)->isPast()){ $data['vote'] = '4'; return $data; }
+        
+        $postVote = array(
+            'user_id' => $user_id,
+            'survey_id' => $survey_id,
+            'number' => (int)$request->option
+        );
+        $vote = SvUserIdSurveyRelation::create($postVote);
+        
+        $data['success'] = !empty($vote);
         return $data;
     }
     

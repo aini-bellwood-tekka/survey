@@ -4,18 +4,15 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/C:/xampp/htdocs/survey/app/Http/Controllers/SurveyController.php</file>
-            <file>file:/C:/xampp/htdocs/survey/resources/views/search.blade.php</file>
-            <file>file:/C:/xampp/htdocs/survey/resources/views/logoff.blade.php</file>
-            <file>file:/C:/xampp/htdocs/survey/resources/views/debug.blade.php</file>
-            <file>file:/C:/xampp/htdocs/survey/resources/views/logon.blade.php</file>
-            <file>file:/C:/xampp/htdocs/survey/resources/views/signup.blade.php</file>
-            <file>file:/C:/xampp/htdocs/survey/resources/views/searchempty.blade.php</file>
-            <file>file:/C:/xampp/htdocs/survey/resources/views/survey.blade.php</file>
             <file>file:/C:/xampp/htdocs/survey/app/Providers/RouteServiceProvider.php</file>
-            <file>file:/C:/xampp/htdocs/survey/app/Http/Controllers/UserController.php</file>
+            <file>file:/C:/xampp/htdocs/survey/resources/views/search.blade.php</file>
+            <file>file:/C:/xampp/htdocs/survey/resources/views/debug.blade.php</file>
             <file>file:/C:/xampp/htdocs/survey/resources/views/surveycreate.blade.php</file>
+            <file>file:/C:/xampp/htdocs/survey/resources/views/signup.blade.php</file>
             <file>file:/C:/xampp/htdocs/survey/routes/web.php</file>
+            <file>file:/C:/xampp/htdocs/survey/resources/views/searchempty.blade.php</file>
             <file>file:/C:/xampp/htdocs/survey/routes/api.php</file>
+            <file>file:/C:/xampp/htdocs/survey/resources/views/survey.blade.php</file>
             <file>file:/C:/xampp/htdocs/survey/resources/views/votedsurvey.blade.php</file>
         </group>
     </open-files>

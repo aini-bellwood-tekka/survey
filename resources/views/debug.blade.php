@@ -13,8 +13,14 @@
 @section('content')
     <h1>あんけーと</h1>
     
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <script src="js/jquery-3.3.1.min.js"></script>
     <script>
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
         $(function(){ // ページ取得時に実行しないように遅延させる。
             $('#id').on('click',function(){
                 $.ajax({
@@ -67,8 +73,8 @@
               'type': 'POST',//TokenMismatchException https://sota1235.hatenablog.com/entry/2015/10/11/213000
               'url': 'http://survey/api/surveycreate',
               'data': {
-                    'question':'apitestQuestion',
-                    'option':JSON.stringify(['apitestOption0','apitestOption1','apitestOption2','apitestOption3']),
+                    'question':'apiTestQuestion',
+                    'jsonoption':JSON.stringify(['apitestOption0','apitestOption1','apitestOption2','apitestOption3']),
                     'timelimit':'1h'
               },
               'dataType': 'json'
@@ -78,12 +84,24 @@
         }
         function api_tagcreate(){
             $.ajax({
-              'type': 'GET',
+              'type': 'POST',
               'url': 'http://survey/api/tagcreate',
               'data': {
                   'survey_id' : '1',
-                  'name' : 'testtag',
-                  'lock_type' : 'lock_type'
+                  'name' : 'test',
+                  'lock_type' : '0'
+              },
+              'dataType': 'json'
+            })
+            .done(function(res, statusText, jqXHR) { alert(JSON.stringify(res)); })
+            .fail(function(jqXHR, textStatus, errorThrown){ alert("fail"); });
+        }
+        function api_tagerase(){
+            $.ajax({
+              'type': 'POST',
+              'url': 'http://survey/api/tagerase',
+              'data': {
+                  'tag_id' : '14',
               },
               'dataType': 'json'
             })
@@ -92,10 +110,10 @@
         }
         function api_vote(){
             $.ajax({
-              'type': 'GET',
+              'type': 'POST',
               'url': 'http://survey/api/vote',
               'data': {
-                  'survey_id' : '1',
+                  'id' : '11',
                   'number' : '1'
               },
               'dataType': 'json'
