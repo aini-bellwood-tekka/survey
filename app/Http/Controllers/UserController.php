@@ -26,7 +26,7 @@ class UserController {
     public function userCrate(Request $request)
     {
         $id = $request->id;
-        $pass = $request->pass;
+        $pass = encrypt($request->pass);
         
         $userpost = array(
             'screen_name' => $id,
@@ -61,7 +61,7 @@ class UserController {
         $pass = $request->pass;
         $user = SvUserAuth::where('user_name', $id)->first();
         
-        if( !empty($user) && $user->password == $pass ){
+        if( !empty($user) && decrypt($user->password) == $pass ){
             $request->session()->put('id',$id);
             $request->session()->put('logon',true);
             $data['user_id'] = $id;
