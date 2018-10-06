@@ -15,8 +15,9 @@
     <form method="post" action="/usercrate">
         {{ csrf_field() }}
         <table>
-            <tr><td>ID:</td><td><input type="text" name="id"></td></tr>
-            <tr><td>PASS:</td><td><input type="text" name="pass"></td></tr>
+            <tr><td>ユーザーID:</td><td><input type="text" name="user_name"></td></tr>
+            <tr><td>ユーザー名:</td><td><input type="text" name="screen_name"></td></tr>
+            <tr><td>パスワード:</td><td><input type="text" name="pass"></td></tr>
         </table>
         <input type="submit" value="アカウント作成">
     </form>

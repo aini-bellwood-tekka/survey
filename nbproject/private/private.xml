@@ -4,13 +4,24 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/C:/xampp/htdocs/survey/app/Http/Controllers/SurveyController.php</file>
-            <file>file:/C:/xampp/htdocs/survey/resources/views/debug.blade.php</file>
-            <file>file:/C:/xampp/htdocs/survey/resources/views/surveycreate.blade.php</file>
-            <file>file:/C:/xampp/htdocs/survey/app/SvUserIdSurveyRelation.php</file>
+            <file>file:/C:/xampp/htdocs/survey/app/SvUserAuth.php</file>
+            <file>file:/C:/xampp/htdocs/survey/.env</file>
+            <file>file:/C:/xampp/htdocs/survey/resources/views/search.blade.php</file>
+            <file>file:/C:/xampp/htdocs/survey/resources/views/logoff.blade.php</file>
+            <file>file:/C:/xampp/htdocs/survey/resources/views/logon.blade.php</file>
             <file>file:/C:/xampp/htdocs/survey/resources/views/signup.blade.php</file>
-            <file>file:/C:/xampp/htdocs/survey/routes/web.php</file>
             <file>file:/C:/xampp/htdocs/survey/resources/views/searchempty.blade.php</file>
+            <file>file:/C:/xampp/htdocs/survey/package.json</file>
+            <file>file:/C:/xampp/htdocs/survey/app/SvUser.php</file>
             <file>file:/C:/xampp/htdocs/survey/resources/views/survey.blade.php</file>
+            <file>file:/C:/xampp/htdocs/survey/index.php</file>
+            <file>file:/C:/xampp/htdocs/survey/public/index.php</file>
+            <file>file:/C:/xampp/htdocs/survey/app/Http/Controllers/UserController.php</file>
+            <file>file:/C:/xampp/htdocs/survey/resources/views/welcome.blade.php</file>
+            <file>file:/C:/xampp/htdocs/survey/resources/views/surveycreate.blade.php</file>
+            <file>file:/C:/xampp/htdocs/survey/routes/web.php</file>
+            <file>file:/C:/xampp/htdocs/survey/.htaccess</file>
+            <file>file:/C:/xampp/htdocs/survey/config/view.php</file>
             <file>file:/C:/xampp/htdocs/survey/resources/views/votedsurvey.blade.php</file>
         </group>
     </open-files>

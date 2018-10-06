@@ -16,38 +16,45 @@ class UserController {
         $logon = $request->session()->get('logon',false);
         
         if($logon == true){
-            $data['user_id'] = $request->session()->get('id');
+            $data['screen_name'] = $request->session()->get('screen_name');
             return view('logon', ['message' => 'ログイン中です。','data' => $data]);
         }else{
             return view('logoff',['message' => '']);
         }
     }
 
-    public function userCrate(Request $request)
-    {
-        $id = $request->id;
+    public function userCrate(Request $request){
+        $user_name = $request->user_name;
+        $screen_name = $request->screen_name;
         $pass = encrypt($request->pass);
         
+        //userテーブルとuser_authテーブルに情報登録
         $userpost = array(
-            'screen_name' => $id,
+            'user_name' => $user_name,
+            'screen_name' => $screen_name,
         );
-        if(!SvUser::create($userpost)){
-            return view('signup', ['message' => 'ユーザーがID重複しています。']);
+        $user = SvUser::create($userpost);
+        if(!$user){
+            return view('signup', ['message' => 'ユーザーIDが重複しています。']);
         }
+        
         $authpost = array(
-            'user_name' => $id,
+            'user_id' => $user->id,
             'password' => $pass
         );
-        if(SvUserAuth::create($authpost)){
-            $request->session()->put('id',$id);
-            $request->session()->put('logon',true);
-            $data['user_id'] = $id;
-            return redirect('');
-            //return view('logon', ['message' => 'ユーザー登録に成功しました。','data' => $data]);
-        }else{
-            SvUser::where('screen_name', $id)->delete();
+        if(!SvUserAuth::create($authpost)){
+            SvUser::where('user_name', $user_name)->delete();
             return view('signup', ['message' => 'アカウント登録に失敗しました。']);
         }
+        //ここまできたら登録成功
+        
+        $request->session()->put('user_id',$user->id);
+        $request->session()->put('user_name',$user_name);
+        $request->session()->put('screen_name',$screen_name);
+        $request->session()->put('logon',true);
+        $data['screen_name'] = $screen_name;
+        return redirect('');
+        //return view('', ['message' => 'ユーザー登録に成功しました。','data' => $data]);
     }
     
     public function getSignUp(Request $request)
@@ -57,19 +64,24 @@ class UserController {
     
     public function userLogin(Request $request)
     { 
-        $id = $request->id;
+        $user_name = $request->user_name;
         $pass = $request->pass;
-        $user = SvUserAuth::where('user_name', $id)->first();
+        $user = SvUser::where('user_name', $user_name)->first();
+        if(empty($user)){
+            return view('logoff',['message' => 'IDもしくはパスワードに誤りがあります。']);
+        }
         
-        if( !empty($user) && decrypt($user->password) == $pass ){
-            $request->session()->put('id',$id);
+        $userAuth = SvUserAuth::where('user_id', $user->id)->first();
+        if( !empty($userAuth) && decrypt($userAuth->password) == $pass ){
+            $request->session()->put('user_id',$user->id);
+            $request->session()->put('user_name',$user_name);
+            $request->session()->put('screen_name',$user->screen_name);
             $request->session()->put('logon',true);
-            $data['user_id'] = $id;
+            $data['screen_name'] =$user->screen_name;
             return view('logon', ['message' => 'ログインに成功しました。','data' => $data]);
         }else{
             return view('logoff',['message' => 'IDもしくはパスワードに誤りがあります。']);
         }
-        
     }
     
     public function userLogoff(Request $request)

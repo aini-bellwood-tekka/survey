@@ -11,6 +11,7 @@ use App\SvSurvey;
 use App\SvSurveyOptions;
 use App\SvSurveyTag;
 use App\SvUserIdSurveyRelation;
+use App\SvUser;
 
 class SurveyController {
     
@@ -62,7 +63,7 @@ class SurveyController {
     private function _getSurveyList(Request $request){
         
         $searchOption = array(
-            'target_user_id' => $request->session()->get('id'),
+            'target_user_id' => $request->session()->get('user_id'),
             
             'sort' => $request->sort,
             'order'=> $request->order,
@@ -130,7 +131,7 @@ class SurveyController {
         if($searchOption['sort'] == 'ms'){
             //自分の投稿した質問
             //質問DBからユーザIDをキーにしてcount件取得
-            $baseSurveys = SvSurvey::where('author_id', $searchOption['target_user_id'])->get();
+            $baseSurveys = SvSurvey::where('author_user_id', $searchOption['target_user_id'])->get();
             
             //キーワード検索
             if($searchOption['text'] != ''){
@@ -242,10 +243,12 @@ class SurveyController {
             return $data; 
         }
         foreach($result['surveys'] as $sv){
+            $user = SvUser::where('id', $sv->author_user_id)->first();
+            
             $op_var = array(
                 'id' => $sv->id,
                 'text' => $sv->description,
-                'author_id' => $sv->author_id,
+                'screen_name' => $user->screen_name,
                 
                 'start_at' => $sv->start_at,
                 'end_at' => $sv->end_at,
@@ -285,7 +288,7 @@ class SurveyController {
             $message = '締切が過ぎています。(E005)';
         }
         
-        return $this->_getSurveyView($message,$request->session()->get('id'),$request->id);
+        return $this->_getSurveyView($message,$request->session()->get('user_id'),$request->id);
     }
     public function apiGetSurvey(Request $request) {
         $logon = $request->session()->get('logon',false);
@@ -298,7 +301,7 @@ class SurveyController {
         $survey = SvSurvey::where('id', $survey_id)->first();
         
         $voted = !empty($votes);
-        $voted = $voted or ($survey->author_id == $user_id);
+        $voted = $voted or ($survey->author_user_id == $user_id);
         $voted = $voted or Carbon::parse($survey->end_at)->isPast();
         
         $data =  $this->_getSurvey($voted,$user_id,$survey_id);
@@ -310,7 +313,7 @@ class SurveyController {
         $votes = SvUserIdSurveyRelation::where('survey_id', $survey_id)->where('user_id', $user_id)->first();
         $survey = SvSurvey::where('id', $survey_id)->first();
         
-        $voted = (!empty($votes) or $survey->author_id == $user_id or Carbon::parse($survey->end_at)->isPast());
+        $voted = (!empty($votes) or $survey->author_user_id == $user_id or Carbon::parse($survey->end_at)->isPast());
         $data =  $this->_getSurvey($voted,$user_id,$survey_id);
         
         return view(($voted)? 'votedsurvey':'survey', ['message' => $massage,'data' =>$data]);
@@ -327,12 +330,13 @@ class SurveyController {
         $all_vote_count = $votes->count() - $votes->where('number', -1)->count();
         $my_vote = $votes->where('user_id', $user_id)->first();
         $my_vote_num = (empty($my_vote))? -1:$my_vote->number;
-                
+        $user = SvUser::where('id', $user_id)->first();
+        
         $data = array(
             'voted' => !empty($voted),
             'survey_id' => $survey_id,
             'question' => $survey->description,
-            'author_id' => $survey->author_id,
+            'screen_name' => $user->screen_name,
             
             'all_vote_count' => $all_vote_count,
             'option' => array(),
@@ -344,7 +348,7 @@ class SurveyController {
             'remaining_time' => Carbon::now()->diff(Carbon::parse($survey->end_at))->format('%d日 %h時間 %i分 %s秒'),
             
             'my_vote_num' => $my_vote_num,
-            'my_survey' => ($user_id == $survey->author_id),
+            'my_survey' => ($user_id == $survey->author_user_id),
          );
         
         $i = 0;
@@ -400,7 +404,7 @@ class SurveyController {
         }
     }
     private function _surveyCreate(Request $request){
-        $id = $request->session()->get('id');
+        $id = $request->session()->get('user_id');
 
         /*
         $limit = $request->timelimit;
@@ -431,7 +435,7 @@ class SurveyController {
         //質問の登録
         $question = $request->question;
         $postSurvey = array(
-            'author_id' => $id,
+            'author_user_id' => $id,
             'title' => '',
             'description' => $question,
             'start_at' => Carbon::now(),
@@ -539,7 +543,7 @@ class SurveyController {
         return $this->_vote($request);
     }
     private function _vote(Request $request) {
-        $user_id = $request->session()->get('id');
+        $user_id = $request->session()->get('user_id');
         $survey_id = $request->id;
         
         $data = array(

@@ -12,7 +12,7 @@
 @endsection
 @section('content')
     <h1>あんけーと</h1>
-    <p><?php echo 'ユーザーID：'.$data['user_id'].'　'. $message; ?></p>
+    <p><?php echo 'ユーザーID：'.$data['screen_name'].'　'. $message; ?></p>
     <a href="/surveycreate">アンケートを作る</a><br>
     <br>
     <a href="/search?page=1&sort=d&order=n">アンケートを探す</a><br>
