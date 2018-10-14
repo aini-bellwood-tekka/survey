@@ -28,6 +28,10 @@ class UserController {
         $screen_name = $request->screen_name;
         $pass = encrypt($request->pass);
         
+        if(empty($user_name) || empty($screen_name) || empty($pass)){
+            return view('signup', ['message' => '空欄の項目があります。']);
+        }
+        
         //userテーブルとuser_authテーブルに情報登録
         $userpost = array(
             'user_name' => $user_name,

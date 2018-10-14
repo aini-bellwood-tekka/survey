@@ -34,7 +34,7 @@
     <?php foreach ($data['tag'] as $tag){ ?>
         <form method="post" action="/tagerase" style="display:inline">
             {{ csrf_field() }}
-            <a href=<?= "/search?page=1&sort=d&order=n&search=tag&text=".$tag['name'] ?>><?php echo $tag['tag_id'].':'.$tag['name']; ?></a>
+            <a href=<?= "/search?page=1&sort=d&order=n&search=tag&text=".$tag['name'] ?>><?php echo $tag['name']; ?></a>
             <input type="hidden" name="survey_id" value=<?= $data['survey_id'] ?>>
             <input type="hidden" name="tag_id" value=<?= $tag['tag_id'] ?>>
             <input type="hidden" name="lock_type" value=<?= $tag['lock_type'] ?>>
@@ -52,7 +52,7 @@
     </form>
     <br>
     
-    <?php echo '作成者：'.$data['screen_name']; ?><br>
+    <?php echo '作成者：'.$data['create_user_screen_name']; ?><br>
     <?php echo '開始日時：'.$data['start_at']; ?><br>
     <?php echo '終了日時：'.$data['end_at']; ?><br>
     <br>

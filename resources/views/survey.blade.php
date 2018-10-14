@@ -52,7 +52,7 @@
     </form>
     <br>
     
-    <?php echo '作成者：'.$data['screen_name']; ?><br>
+    <?php echo '作成者：'.$data['create_user_screen_name']; ?><br>
     <?php echo '開始日時：'.$data['start_at']; ?><br>
     <?php echo '終了日時：'.$data['end_at']; ?><br>
     <br>

@@ -331,12 +331,14 @@ class SurveyController {
         $my_vote = $votes->where('user_id', $user_id)->first();
         $my_vote_num = (empty($my_vote))? -1:$my_vote->number;
         $user = SvUser::where('id', $user_id)->first();
+        $create_user = SvUser::where('id', $survey->author_user_id)->first();
         
         $data = array(
             'voted' => !empty($voted),
             'survey_id' => $survey_id,
             'question' => $survey->description,
             'screen_name' => $user->screen_name,
+            'create_user_screen_name' => $create_user->screen_name,
             
             'all_vote_count' => $all_vote_count,
             'option' => array(),
