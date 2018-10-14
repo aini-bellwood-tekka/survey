@@ -16,14 +16,12 @@ use App\SvUser;
 class SurveyController {
     
     private function _webError($request,$msg){
-        $data = array(
-            'user_id' => $request->session()->get('id'),
-         );
+        $data['screen_name'] = $request->session()->get('screen_name');
         return view('logon', ['message' => $msg,'data' => $data]); 
     }
     private function _apiError($request,$msg){
         $data = array(
-            'user_id' => $request->session()->get('id'),
+            'screen_name' => $request->session()->get('screen_name'),
             'error' =>'',
             'message' => $msg,
          );
@@ -385,6 +383,12 @@ class SurveyController {
         $logon = $request->session()->get('logon',false);
         if($logon == false){ return $this->_webError($request, 'ログインしてくだい。'); }
         
+        if(empty($request->question)){ return $this->_webError($request, '質問の登録に失敗しました。本文が空欄です。'); }
+        
+        $isEmpty = false;
+        foreach ($request->option as $option){ if(empty($option)){ $isEmpty = true;  } }
+        if($isEmpty == true){ return $this->_webError($request, '質問の登録に失敗しました。空欄の質問があります。'); }
+        
         $data = $this->_surveyCreate($request);
         
         if($data['success']){
@@ -397,12 +401,20 @@ class SurveyController {
         $logon = $request->session()->get('logon',false);
         if($logon == false){ return _apiError($request, 'ログインしてくだい。'); }
 
+        if(empty($request->question)){ return $this->_apiError($request, '質問の登録に失敗しました。本文が空欄です。'); }
+        
+        $isEmpty = false;
+        foreach ($request->option as $option){ if(empty($option)){ $isEmpty = true;  } }
+        if($isEmpty == true){ return $this->_apiError($request, '質問の登録に失敗しました。空欄の選択肢があります。'); }
+        
         $request['option'] = json_decode($request->jsonoption);
+        
+        $data = $this->_surveyCreate($request);
         
         if($data['success']){
             return $data;
         }else{
-            return $this->apiError($request, $data['message']);
+            return $this->_apiError($request, $data['message']);
         }
     }
     private function _surveyCreate(Request $request){
@@ -475,6 +487,8 @@ class SurveyController {
     public function webCreateTag(Request $request) {
         $logon = $request->session()->get('logon',false);
         if($logon == false){ return $this->_webError($request, 'ログインしてくだい。'); }
+
+        if(empty($request->name)){ return $this->_webError($request, 'タグの登録に失敗しました。'); }
         
         $data = $this->_createTag($request);
         
@@ -487,6 +501,8 @@ class SurveyController {
     public function apiCreateTag(Request $request) {
         $logon = $request->session()->get('logon',false);
         if($logon == false){ return _apiError($request, 'ログインしてくだい。'); }
+        
+        if(empty($request->name)){ return $this->_apiError($request, 'タグの登録に失敗しました'); }
         
         $data = $this->_createTag($request);
         
