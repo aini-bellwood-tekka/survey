@@ -32,6 +32,11 @@ class UserController {
             return view('signup', ['message' => '空欄の項目があります。']);
         }
         
+        $userFind = SvUser::where('user_name', $user_name)->first();
+        if($userFind){
+            return view('signup', ['message' => 'ユーザーIDが重複しています。']);
+        }
+        
         //userテーブルとuser_authテーブルに情報登録
         $userpost = array(
             'user_name' => $user_name,
