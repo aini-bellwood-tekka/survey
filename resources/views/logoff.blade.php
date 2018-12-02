@@ -24,4 +24,7 @@
     <form method="get" action="/signup">
         <input type="submit" value="アカウント作成">
     </form>
+    <a class="btn btn-default" href="/login/twitter">
+        twitter
+    </a>
 @endsection

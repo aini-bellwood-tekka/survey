@@ -30,3 +30,11 @@ Route::post('/vote', 'SurveyController@webVote');
 Route::post('/api/vote', 'SurveyController@apiVote');
 
 Route::get('/debug', 'SurveyController@getDebugView');
+
+Auth::routes();
+
+Route::get('/home', 'HomeController@index')->name('home');
+
+//twitter
+Route::get('/login/twitter', 'Auth\SocialController@getTwitterAuth');
+Route::get('/login/twitter/callback', 'Auth\SocialController@getTwitterAuthCallback');
