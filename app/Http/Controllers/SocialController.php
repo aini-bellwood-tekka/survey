@@ -30,40 +30,6 @@ class SocialController extends Controller
         return redirect($this->redirectTo);
     }
 
-    // facebook
-
-    public function getFacebookAuth()
-    {
-        return Socialite::driver('facebook')->redirect();
-    }
-
-    public function getFacebookAuthCallback()
-    {
-        $facebookUser = Socialite::driver('facebook')->stateless()->user(); // (1)
-
-        $user = $this->createOrGetUser($facebookUser, 'facebook');
-        Auth::login($user, true);
-
-        return redirect($this->redirectTo);
-    }
-
-    // Google
-
-    public function getGoogleAuth()
-    {
-        return Socialite::driver('google')->redirect();
-    }
-
-    public function getGoogleAuthCallback()
-    {
-        $googleUser = Socialite::driver('google')->user();
-
-        $user = $this->createOrGetUser($googleUser, 'google');
-        Auth::login($user, true);
-
-        return redirect($this->redirectTo);
-    }
-
     public function createOrGetUser($providerUser, $provider)
     {
         $account = SocialAccount::firstOrCreate([
