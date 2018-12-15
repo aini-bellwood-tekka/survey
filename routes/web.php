@@ -31,9 +31,10 @@ Route::post('/api/vote', 'SurveyController@apiVote');
 
 Route::get('/debug', 'SurveyController@getDebugView');
 
-Auth::routes();
-
-Route::get('/home', 'HomeController@index')->name('home');
+//Auth認証に使うRoute設定。
+//https://teratail.com/questions/106720
+//Auth::routes();
+//Route::get('/home', 'HomeController@index')->name('home');
 
 //twitter
 Route::get('/login/twitter', 'Auth\SocialController@getTwitterAuth');

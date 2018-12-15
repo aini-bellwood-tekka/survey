@@ -27,6 +27,12 @@ class SocialController extends Controller
         $user = $this->createOrGetUser($twitterUser, 'twitter');
         Auth::login($user, true);
 
+        
+        session(['user_id' => $user->id]);
+        session(['user_name' => $user->name]);
+        session(['screen_name' => $user->screen_name]);
+        session(['logon' => true]);
+        
         return redirect($this->redirectTo);
     }
 
