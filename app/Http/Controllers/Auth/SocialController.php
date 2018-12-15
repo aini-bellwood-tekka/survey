@@ -11,7 +11,7 @@ use App\SocialAccount;
 
 class SocialController extends Controller
 {
-    protected $redirectTo = '/home';        //your-redirect-url-after-login
+    protected $redirectTo = '';        //your-redirect-url-after-login
 
     // twitter
 
