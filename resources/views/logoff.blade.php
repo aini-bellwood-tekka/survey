@@ -12,17 +12,5 @@
 @section('content')
     <h1>あんけーと</h1>
     <p><?php echo $message; ?></p>
-    <form method="post" action="/login">
-        {{ csrf_field() }}
-        <table>
-            <tr><td>ユーザーID:</td><td><input type="text" name="user_name"></td></tr>
-            <tr><td>パスワード:</td><td><input type="text" name="pass"></td></tr>
-        </table>
-        <input type="submit" value="ログイン">
-    </form>
-    </br>
-    <form method="get" action="/signup">
-        <input type="submit" value="アカウント作成">
-    </form>
     <a class="btn btn-default" href="/login/twitter">Twitterアカウントでログイン</a>
 @endsection
