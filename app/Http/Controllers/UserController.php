@@ -17,6 +17,10 @@ class UserController {
         
         if($logon == true){
             $data['screen_name'] = $request->session()->get('screen_name');
+            
+            $data['user_id'] = $request->session()->get('user_id');
+            $data['user_name'] = $request->session()->get('user_name');
+            
             return view('logon', ['message' => 'ログイン中です。','data' => $data]);
         }else{
             return view('logoff',['message' => '']);
