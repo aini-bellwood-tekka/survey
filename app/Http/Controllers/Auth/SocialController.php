@@ -27,12 +27,21 @@ class SocialController extends Controller
         $user = $this->createOrGetUser($twitterUser, 'twitter');
         Auth::login($user, true);
 
+        session(['user_nickname' => $user->nickname]);
+        session(['user_name' => $user->name]);
+        session(['screen_name' => $user->name]);
+        session(['user_email' => $user->email]);
+        session(['user_avatar' => $user->avatar]);
         
         session(['user_id' => $user->id]);
-        session(['user_name' => $user->name]);
-        session(['screen_name' => $user->screen_name]);
         session(['logon' => true]);
         
+        return redirect($this->redirectTo);
+    }
+    public function twitterLogoff()
+    {
+        Auth::logout();
+        session(['logon' => false]);
         return redirect($this->redirectTo);
     }
 
@@ -51,6 +60,9 @@ class SocialController extends Controller
                 'avatar' => $providerUser->getAvatar(),
             ]);
             $account->user()->associate($user);
+        }else{
+            $account->user->name = $providerUser->getName();
+            $account->user->save();
         }
 
         $account->provider_access_token = $providerUser->token;

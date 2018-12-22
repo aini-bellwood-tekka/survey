@@ -4,7 +4,8 @@ Route::get('/', 'UserController@getTopPage');
 Route::get('/signup',  'UserController@getSignUp');
 Route::post('/usercrate', 'UserController@userCrate');
 Route::post('/login', 'UserController@userLogin');
-Route::get('/logoff', 'UserController@userLogoff');
+//Route::get('/logoff', 'UserController@userLogoff');
+Route::get('/logoff', 'Auth\SocialController@twitterLogoff');
 
 Route::get('/search', 'SurveyController@webGetSurveyList');
 Route::post('/search', 'SurveyController@webTextSearch');

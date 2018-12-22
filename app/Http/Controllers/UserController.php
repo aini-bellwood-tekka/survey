@@ -9,6 +9,7 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\SvUser;
 use App\SvUserAuth;
+use App\Http\Controllers\Auth;
 
 class UserController {
     
@@ -100,6 +101,7 @@ class UserController {
     public function userLogoff(Request $request)
     { 
         $request->session()->put('logon',false);
+        Auth::logout();
         return view('logoff',['message' => '']);
     }
     
