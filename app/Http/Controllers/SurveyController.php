@@ -12,6 +12,7 @@ use App\SvSurveyOptions;
 use App\SvSurveyTag;
 use App\SvUserIdSurveyRelation;
 use App\SvUser;
+use App\User;
 
 class SurveyController {
     
@@ -241,12 +242,12 @@ class SurveyController {
             return $data; 
         }
         foreach($result['surveys'] as $sv){
-            $user = SvUser::where('id', $sv->author_user_id)->first();
+            $user = User::where('id', $sv->author_user_id)->first();
             
             $op_var = array(
                 'id' => $sv->id,
                 'text' => $sv->description,
-                'screen_name' => $user->screen_name,
+                'screen_name' => $user->name,
                 
                 'start_at' => $sv->start_at,
                 'end_at' => $sv->end_at,
@@ -328,15 +329,15 @@ class SurveyController {
         $all_vote_count = $votes->count() - $votes->where('number', -1)->count();
         $my_vote = $votes->where('user_id', $user_id)->first();
         $my_vote_num = (empty($my_vote))? -1:$my_vote->number;
-        $user = SvUser::where('id', $user_id)->first();
-        $create_user = SvUser::where('id', $survey->author_user_id)->first();
+        $user = User::where('id', $user_id)->first();
+        $create_user = User::where('id', $survey->author_user_id)->first();
         
         $data = array(
             'voted' => !empty($voted),
             'survey_id' => $survey_id,
             'question' => $survey->description,
-            'screen_name' => $user->screen_name,
-            'create_user_screen_name' => $create_user->screen_name,
+            'screen_name' => $user->name,
+            'create_user_screen_name' => $create_user->name,
             
             'all_vote_count' => $all_vote_count,
             'option' => array(),
