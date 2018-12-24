@@ -55,10 +55,10 @@ class SurveyController {
         $data = $this->_getSurveyList($request);
         
         if($data['count'] > 0 ){
-            return view('search', ['message' => $data['message'],'data' => $data,'userdata' => $userdata]);
+            return view('search', ['message' => $data['message'],'data' => $data, 'userdata' => $userdata]);
         }
         else{
-            return view('searchempty', ['message' => $data['message'],'data' => $data,'userdata' => $userdata]);
+            return view('searchempty', ['message' => $data['message'],'data' => $data, 'userdata' => $userdata]);
         }
     }
     public function apiGetSurveyList(Request $request) {
@@ -487,8 +487,8 @@ class SurveyController {
     }
     
     public function webGetSurveyCreateForm(Request $request) {
-        $userData = $this->_initUserData($request);
-        return view('surveycreate', ['message' => '','userdata' => $userData]);
+        $userdata = $this->_initUserData($request);
+        return view('surveycreate', ['message' => '','userdata' => $userdata]);
     }
     
     public function webCreateTag(Request $request) {
