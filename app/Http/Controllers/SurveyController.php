@@ -18,16 +18,16 @@ class SurveyController {
     
     private function _webError($request,$msg){
         $userdata = $this->_initUserData($request);
-        $data['message'] = $msg;
+        $userdata['message'] = $msg;
         return view('top', ['message' => $msg,'userdata' => $userdata]); 
     }
     private function _apiError($request,$msg){
         $userdata = $this->_initUserData($request);
-        $data['message'] = $msg;
+        $userdata['message'] = $msg;
         return $userdata; 
     }
     private function _initUserData($request){
-        $data = array(
+        $userdata = array(
             'error' =>'',
             'message' => '',
             'logon' => $request->session()->get('logon',false),
@@ -37,7 +37,7 @@ class SurveyController {
             'suer_email' => $request->session()->get('suer_email',''),
             'user_avatar' => $request->session()->get('user_avatar',''),
          );
-        return $data; 
+        return $userdata; 
     }
     
     public function webTextSearch(Request $request) {
@@ -62,7 +62,7 @@ class SurveyController {
     }
     public function apiGetSurveyList(Request $request) {
         $logon = $request->session()->get('logon',false);
-        if($logon == false){ return _apiError($request, 'ログインしてくだい。'); }
+        if($logon == false){ return $this->_apiError($request, 'ログインしてくだい。'); }
         
         return $this->_getSurveyList($request);
     }
@@ -298,7 +298,7 @@ class SurveyController {
     }
     public function apiGetSurvey(Request $request) {
         $logon = $request->session()->get('logon',false);
-        if($logon == false){ return _apiError($request, 'ログインしてくだい。'); }
+        if($logon == false){ return $this->_apiError($request, 'ログインしてくだい。'); }
         
         $survey_id = $request->id;
         $user_id = $request->session()->get('id');
@@ -407,7 +407,7 @@ class SurveyController {
     }
     public function apiSurveyCreate(Request $request) {
         $logon = $request->session()->get('logon',false);
-        if($logon == false){ return _apiError($request, 'ログインしてくだい。'); }
+        if($logon == false){ return $this->_apiError($request, 'ログインしてくだい。'); }
 
         if(empty($request->question)){ return $this->_apiError($request, '質問の登録に失敗しました。本文が空欄です。'); }
         
@@ -508,7 +508,7 @@ class SurveyController {
     }
     public function apiCreateTag(Request $request) {
         $logon = $request->session()->get('logon',false);
-        if($logon == false){ return _apiError($request, 'ログインしてくだい。'); }
+        if($logon == false){ return $this->_apiError($request, 'ログインしてくだい。'); }
         
         if(empty($request->name)){ return $this->_apiError($request, 'タグの登録に失敗しました'); }
         
@@ -540,7 +540,7 @@ class SurveyController {
     }
     public function apiEraseTag(Request $request) {
         $logon = $request->session()->get('logon',false);
-        if($logon == false){ return _apiError($request, 'ログインしてくだい。'); }
+        if($logon == false){ return $this->_apiError($request, 'ログインしてくだい。'); }
         
         $data = $this->_eraseTag($request);
         
@@ -564,7 +564,7 @@ class SurveyController {
     }
     public function apiVote(Request $request) {
         $logon = $request->session()->get('logon',false);
-        if($logon == false){ return _apiError($request, 'ログインしてくだい。'); }
+        if($logon == false){ return $this->_apiError($request, 'ログインしてくだい。'); }
         
         return $this->_vote($request);
     }
