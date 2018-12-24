@@ -20,7 +20,7 @@ class UserController {
         $data['user_id'] = $request->session()->get('user_id','');
         $data['user_name'] = $request->session()->get('user_name','');
         
-        return view('top', ['message' => '','data' => $data]);
+        return view('top', ['message' => '','userdata' => $data]);
     }
 
     public function userCrate(Request $request){
