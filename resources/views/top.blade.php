@@ -20,6 +20,9 @@
             echo '<a href="/search?page=1&sort=d&order=n">アンケートを探す</a><br><br>';
             echo '<a href="/search?page=1&sort=ms&order=n">自分の作ったアンケートを探す</a><br><br>';
             echo '<a href="/search?page=1&sort=ma&order=n">自分の回答したアンケートを探す</a><br><br>';
+        }else{
+            echo 'アンケートの作成はログイン後に行えます<br><br>';
+            echo '<a href="/search?page=1&sort=d&order=n">アンケートを探す</a><br><br>';
         }
     ?>
     @include('layouts.loginbutton')
