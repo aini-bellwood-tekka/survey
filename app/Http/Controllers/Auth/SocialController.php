@@ -41,6 +41,13 @@ class SocialController extends Controller
     public function twitterLogoff()
     {
         Auth::logout();
+        session(['user_nickname' => '']);
+        session(['user_name' => '']);
+        session(['screen_name' => '']);
+        session(['user_email' => '']);
+        session(['user_avatar' => '']);
+        
+        session(['user_id' => 0]);
         session(['logon' => false]);
         return redirect($this->redirectTo);
     }

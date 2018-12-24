@@ -1,8 +1,7 @@
 <?php
-
-/* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
+if ({{$logon}}){
+    echo '<a href="/">マイページ</a>　<a href="/logoff">ログアウト</a>'
+}else{
+    echo '<a href="/login/twitter">Twitter連携でログイン</a>'
+}
+?>
