@@ -38,5 +38,5 @@
     <br>
     <a href="/">トップに戻る</a>
     <br>
-    @include('layouts.loginbutton', array('logon'=>$data['logon']))
+    @include('layouts.loginbutton')
 @endsection

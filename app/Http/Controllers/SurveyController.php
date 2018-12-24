@@ -17,21 +17,30 @@ use App\User;
 class SurveyController {
     
     private function _webError($request,$msg){
-        $data['screen_name'] = $request->session()->get('screen_name');
-        return view('top', ['message' => $msg,'data' => $data]); 
+        $userdata = _initUserData($request);
+        $data['message'] = $msg;
+        return view('top', ['message' => $msg,'userdata' => $userdata]); 
     }
     private function _apiError($request,$msg){
+        $userdata = _initUserData($request);
+        $data['message'] = $msg;
+        return $userdata; 
+    }
+    private function _initUserData($request){
         $data = array(
-            'screen_name' => $request->session()->get('screen_name'),
             'error' =>'',
-            'message' => $msg,
+            'message' => '',
+            'logon' => $request->session()->get('logon',false),
+            'user_id' => $request->session()->get('user_id',0),
+            'screen_name' => $request->session()->get('screen_name',''),
+            'user_name' => $request->session()->get('user_name',''),
+            'suer_email' => $request->session()->get('suer_email',''),
+            'user_avatar' => $request->session()->get('user_avatar',''),
          );
         return $data; 
     }
     
     public function webTextSearch(Request $request) {
-        $logon = $request->session()->get('logon',false);
-        if($logon == false){ return $this->_webError($request, 'ログインしてくだい。'); }
         
         $sort = '&sort=' . $request->sort;
         $order = '&order=' . $request->order;
@@ -41,8 +50,6 @@ class SurveyController {
         return redirect('search?page=1' . $sort . $order . $search . $text);
     }
     public function webGetSurveyList(Request $request) {
-        $logon = $request->session()->get('logon',false);
-        if($logon == false){ return $this->_webError($request, 'ログインしてくだい。'); }
         
         $data = $this->_getSurveyList($request);
         
@@ -481,8 +488,8 @@ class SurveyController {
     }
     
     public function webGetSurveyCreateForm(Request $request) {
-        
-        return view('surveycreate', ['message' => '']);
+        $userData = _initUserData($request);
+        return view('surveycreate', ['message' => '','userdata' => $userData]);
     }
     
     public function webCreateTag(Request $request) {

@@ -11,16 +11,16 @@
     </style>
 @endsection
 @section('content')
-    <h1>あんけーと</h1
+    <h1>あんけーと</h1>
     <?php
         echo $message; 
-        if ( $data['logon'] ){
-            echo 'ユーザー名：'.$data['screen_name'].'<br><br>';
+        if ( $userdata['logon'] ){
+            echo 'ユーザー名：'.$userdata['screen_name'].'<br><br>';
             echo '<a href="/surveycreate">アンケートを作る</a><br><br>';
             echo '<a href="/search?page=1&sort=d&order=n">アンケートを探す</a><br><br>';
             echo '<a href="/search?page=1&sort=ms&order=n">自分の作ったアンケートを探す</a><br><br>';
             echo '<a href="/search?page=1&sort=ma&order=n">自分の回答したアンケートを探す</a><br><br>';
         }
     ?>
-    @include('layouts.loginbutton', array('logon'=>$data['logon']))
+    @include('layouts.loginbutton')
 @endsection
