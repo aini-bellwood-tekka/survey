@@ -10,26 +10,27 @@
             <file>file:/C:/xampp/htdocs/survey/app/Http/Controllers/HomeController.php</file>
             <file>file:/C:/xampp/htdocs/survey/.env.example</file>
             <file>file:/C:/xampp/htdocs/survey/resources/views/survey.blade.php</file>
+            <file>file:/C:/xampp/htdocs/survey/app/SvUser.php</file>
             <file>file:/C:/xampp/htdocs/survey/app/SvSurvey.php</file>
-            <file>file:/C:/xampp/htdocs/survey/config/auth.php</file>
+            <file>file:/C:/xampp/htdocs/survey/resources/views/welcome.blade.php</file>
             <file>file:/C:/xampp/htdocs/survey/resources/lang/en/auth.php</file>
-            <file>file:/C:/xampp/htdocs/survey/routes/console.php</file>
             <file>file:/C:/xampp/htdocs/survey/resources/views/votedsurvey.blade.php</file>
+            <file>file:/C:/xampp/htdocs/survey/resources/views/search.blade.php</file>
             <file>file:/C:/xampp/htdocs/survey/config/app.php</file>
             <file>file:/C:/xampp/htdocs/survey/resources/views/logoff.blade.php</file>
             <file>file:/C:/xampp/htdocs/survey/resources/views/signup.blade.php</file>
             <file>file:/C:/xampp/htdocs/survey/resources/views/logon.blade.php</file>
             <file>file:/C:/xampp/htdocs/survey/app/Http/Controllers/Controller.php</file>
             <file>file:/C:/xampp/htdocs/survey/resources/views/searchempty.blade.php</file>
+            <file>file:/C:/xampp/htdocs/survey/app/User.php</file>
             <file>file:/C:/xampp/htdocs/survey/app/Http/Controllers/Auth/SocialController.php</file>
             <file>file:/C:/xampp/htdocs/survey/app/Http/Controllers/UserController.php</file>
             <file>file:/C:/xampp/htdocs/survey/app/Http/Controllers/Auth/RegisterController.php</file>
-            <file>file:/C:/xampp/htdocs/survey/routes/channels.php</file>
             <file>file:/C:/xampp/htdocs/survey/config/services.php</file>
+            <file>file:/C:/xampp/htdocs/survey/resources/views/surveycreate.blade.php</file>
             <file>file:/C:/xampp/htdocs/survey/routes/web.php</file>
             <file>file:/C:/xampp/htdocs/survey/config/view.php</file>
             <file>file:/C:/xampp/htdocs/survey/app/SocialAccount.php</file>
-            <file>file:/C:/xampp/htdocs/survey/app/Http/Controllers/Auth/LoginController.php</file>
         </group>
     </open-files>
 </project-private>

@@ -23,5 +23,5 @@
     <a href="/search?page=1&sort=ma&order=n">自分の回答したアンケートを探す</a><br>
     <br>
     <br>
-    <a href="/logoff">ログアウト</a>
+    @include('layouts/logonbutton', array('logon'=>false))
 @endsection
