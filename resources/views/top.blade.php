@@ -15,7 +15,7 @@
     <?php
         echo $message; 
         if ( $data['logon'] ){
-            echo 'ユーザー名：'.$data['screen_name'];
+            echo 'ユーザー名：'.$data['screen_name'].'<br><br>';
             echo '<a href="/surveycreate">アンケートを作る</a><br><br>';
             echo '<a href="/search?page=1&sort=d&order=n">アンケートを探す</a><br><br>';
             echo '<a href="/search?page=1&sort=ms&order=n">自分の作ったアンケートを探す</a><br><br>';

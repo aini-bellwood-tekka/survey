@@ -18,7 +18,7 @@ class SurveyController {
     
     private function _webError($request,$msg){
         $data['screen_name'] = $request->session()->get('screen_name');
-        return view('logon', ['message' => $msg,'data' => $data]); 
+        return view('top', ['message' => $msg,'data' => $data]); 
     }
     private function _apiError($request,$msg){
         $data = array(
