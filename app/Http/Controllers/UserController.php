@@ -14,7 +14,8 @@ use App\Http\Controllers\Auth;
 class UserController {
     
     public function getTopPage(Request $request) {
-        $logon = $request->session()->get('logon',false);
+        
+        $data['logon'] = $request->session()->get('logon',false);
         
         if($logon == true){
             $data['screen_name'] = $request->session()->get('screen_name');
@@ -22,10 +23,8 @@ class UserController {
             $data['user_id'] = $request->session()->get('user_id');
             $data['user_name'] = $request->session()->get('user_name');
             
-            return view('logon', ['message' => 'ログイン中です。','data' => $data]);
-        }else{
-            return view('logoff',['message' => '']);
         }
+        return view('logon', ['message' => '','data' => $data]);
     }
 
     public function userCrate(Request $request){
