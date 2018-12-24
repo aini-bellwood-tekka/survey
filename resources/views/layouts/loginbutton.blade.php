@@ -1,3 +1,5 @@
+
+    <br>
 <?php
 if ( $data['logon'] ){
     echo '<a href="/">マイページ</a>　<a href="/logoff">ログアウト</a>';

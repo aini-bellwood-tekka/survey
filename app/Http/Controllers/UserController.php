@@ -16,15 +16,11 @@ class UserController {
     public function getTopPage(Request $request) {
         
         $data['logon'] = $request->session()->get('logon',false);
+        $data['screen_name'] = $request->session()->get('screen_name','');
+        $data['user_id'] = $request->session()->get('user_id','');
+        $data['user_name'] = $request->session()->get('user_name','');
         
-        if($data['logon'] == true){
-            $data['screen_name'] = $request->session()->get('screen_name');
-            
-            $data['user_id'] = $request->session()->get('user_id');
-            $data['user_name'] = $request->session()->get('user_name');
-            
-        }
-        return view('logon', ['message' => '','data' => $data]);
+        return view('top', ['message' => '','data' => $data]);
     }
 
     public function userCrate(Request $request){
@@ -91,17 +87,24 @@ class UserController {
             $request->session()->put('screen_name',$user->screen_name);
             $request->session()->put('logon',true);
             $data['screen_name'] =$user->screen_name;
-            return view('logon', ['message' => 'ログインに成功しました。','data' => $data]);
+            return view('top', ['message' => 'ログインに成功しました。','data' => $data]);
         }else{
-            return view('logoff',['message' => 'IDもしくはパスワードに誤りがあります。']);
+            $request->session()->put('user_id',0);
+            $request->session()->put('user_name','');
+            $request->session()->put('screen_name','');
+            $request->session()->put('logon',false);
+            return view('top',['message' => 'IDもしくはパスワードに誤りがあります。','data' => $data]);
         }
     }
     
     public function userLogoff(Request $request)
     { 
+        $request->session()->put('user_id',0);
+        $request->session()->put('user_name','');
+        $request->session()->put('screen_name','');
         $request->session()->put('logon',false);
         Auth::logout();
-        return view('logoff',['message' => '']);
+        return view('top',['message' => '']);
     }
     
 }

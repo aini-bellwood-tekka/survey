@@ -28,5 +28,5 @@
     <br>
     <a href="/">トップに戻る</a><br>
     <br>
-    <a href="/logoff">ログアウト</a>
+    @include('layouts.loginbutton', array('logon'=>$data['logon']))
 @endsection

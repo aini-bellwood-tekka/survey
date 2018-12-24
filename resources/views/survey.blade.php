@@ -57,7 +57,7 @@
     <?php echo '終了日時：'.$data['end_at']; ?><br>
     <br>
     <br>
-    <a href="/">トップに戻る</a><br>
+    <a href="/">トップに戻る</a>
     <br>
-    <a href="/logoff">ログアウト</a>
+    @include('layouts.loginbutton', array('logon'=>$data['logon']))
 @endsection
