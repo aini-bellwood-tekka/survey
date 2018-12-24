@@ -17,7 +17,7 @@ class UserController {
         
         $data['logon'] = $request->session()->get('logon',false);
         
-        if($logon == true){
+        if($data['logon'] == true){
             $data['screen_name'] = $request->session()->get('screen_name');
             
             $data['user_id'] = $request->session()->get('user_id');
