@@ -51,13 +51,14 @@ class SurveyController {
     }
     public function webGetSurveyList(Request $request) {
         
+        $userdata = $this->_initUserData($request);
         $data = $this->_getSurveyList($request);
         
         if($data['count'] > 0 ){
-            return view('search', ['message' => $data['message'],'data' => $data]);
+            return view('search', ['message' => $data['message'],'data' => $data,'userdata' => $userdata]);
         }
         else{
-            return view('searchempty', ['message' => $data['message'],'data' => $data]);
+            return view('searchempty', ['message' => $data['message'],'data' => $data,'userdata' => $userdata]);
         }
     }
     public function apiGetSurveyList(Request $request) {
@@ -272,9 +273,6 @@ class SurveyController {
     
     public function webGetSurvey(Request $request) {
         
-        $logon = $request->session()->get('logon',false);
-        if($logon == false){ return $this->_webError($request, 'ログインしてくだい。'); }
-        
        if($request->error == 1){
             $message = 'タグの登録に失敗しました。(E004)';
         }
@@ -297,8 +295,6 @@ class SurveyController {
         return $this->_getSurveyView($message,$request->session()->get('user_id'),$request->id);
     }
     public function apiGetSurvey(Request $request) {
-        $logon = $request->session()->get('logon',false);
-        if($logon == false){ return $this->_apiError($request, 'ログインしてくだい。'); }
         
         $survey_id = $request->id;
         $user_id = $request->session()->get('id');
@@ -315,6 +311,9 @@ class SurveyController {
         return $data;
     }
     private function _getSurveyView($massage,$user_id,$survey_id){
+        
+        $userdata = $this->_initUserData($request);
+        
         //質問view取得関数
         $votes = SvUserIdSurveyRelation::where('survey_id', $survey_id)->where('user_id', $user_id)->first();
         $survey = SvSurvey::where('id', $survey_id)->first();
@@ -322,7 +321,7 @@ class SurveyController {
         $voted = (!empty($votes) or $survey->author_user_id == $user_id or Carbon::parse($survey->end_at)->isPast());
         $data =  $this->_getSurvey($voted,$user_id,$survey_id);
         
-        return view(($voted)? 'votedsurvey':'survey', ['message' => $massage,'data' =>$data]);
+        return view(($voted)? 'votedsurvey':'survey', ['message' => $massage,'data' =>$data, 'userdata' => $userdata]);
     }
     private function _getSurvey($voted,$user_id,$survey_id){
         //質問取得関数
