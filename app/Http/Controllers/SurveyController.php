@@ -17,12 +17,12 @@ use App\User;
 class SurveyController {
     
     private function _webError($request,$msg){
-        $userdata = _initUserData($request);
+        $userdata = $this->_initUserData($request);
         $data['message'] = $msg;
         return view('top', ['message' => $msg,'userdata' => $userdata]); 
     }
     private function _apiError($request,$msg){
-        $userdata = _initUserData($request);
+        $userdata = $this->_initUserData($request);
         $data['message'] = $msg;
         return $userdata; 
     }
@@ -488,7 +488,7 @@ class SurveyController {
     }
     
     public function webGetSurveyCreateForm(Request $request) {
-        $userData = _initUserData($request);
+        $userData = $this->_initUserData($request);
         return view('surveycreate', ['message' => '','userdata' => $userData]);
     }
     
