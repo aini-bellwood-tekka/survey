@@ -291,55 +291,43 @@ class SurveyController {
         else if($request->vote == 4){
             $message = '締切が過ぎています。(E005)';
         }
-        
-        return $this->_getSurveyView($message,$request->session()->get('user_id'),$request->id);
-    }
-    public function apiGetSurvey(Request $request) {
-        
-        $survey_id = $request->id;
-        $user_id = $request->session()->get('id');
-        
-        $votes = SvUserIdSurveyRelation::where('survey_id', $survey_id)->where('user_id', $user_id)->first();
-        $survey = SvSurvey::where('id', $survey_id)->first();
-        
-        $voted = !empty($votes);
-        $voted = $voted or ($survey->author_user_id == $user_id);
-        $voted = $voted or Carbon::parse($survey->end_at)->isPast();
-        
-        $data =  $this->_getSurvey($voted,$user_id,$survey_id);
-        
-        return $data;
-    }
-    private function _getSurveyView($massage,$user_id,$survey_id){
-        
+        $data =  $this->_getSurvey($request);
         $userdata = $this->_initUserData($request);
-        
-        //質問view取得関数
-        $votes = SvUserIdSurveyRelation::where('survey_id', $survey_id)->where('user_id', $user_id)->first();
-        $survey = SvSurvey::where('id', $survey_id)->first();
-        
-        $voted = (!empty($votes) or $survey->author_user_id == $user_id or Carbon::parse($survey->end_at)->isPast());
-        $data =  $this->_getSurvey($voted,$user_id,$survey_id);
-        
+
         return view(($voted)? 'votedsurvey':'survey', ['message' => $massage,'data' =>$data, 'userdata' => $userdata]);
     }
-    private function _getSurvey($voted,$user_id,$survey_id){
+    public function apiGetSurvey(Request $request) {
+        return $this->_getSurvey($request);
+    }
+    private function _getSurvey(Request $request){
+        
         //質問取得関数
+        $survey_id = $request->id;
         $survey = SvSurvey::where('id', $survey_id)->first();
         $options = SvSurveyOptions::where('survey_id', $survey_id)->get();
         $tags = SvSurveyTag::where('survey_id', $survey_id)->get();
+        $votes = SvUserIdSurveyRelation::where('survey_id', $survey_id)->get();     //すべての投票を取得
+        $all_vote_count = $votes->count() - $votes->where('number', -1)->count();   //無効票以外の総数を取得
+        $create_user = User::where('id', $survey->author_user_id)->first(); //質問の作成者情報を取得
         
         if(empty($survey) || empty($options) || empty($tags)) { return $this->_error($request, '質問の取得に失敗しました。(E002)'); }
         
-        $votes = SvUserIdSurveyRelation::where('survey_id', $survey_id)->get();
-        $all_vote_count = $votes->count() - $votes->where('number', -1)->count();
-        $my_vote = $votes->where('user_id', $user_id)->first();
-        $my_vote_num = (empty($my_vote))? -1:$my_vote->number;
-        $user = User::where('id', $user_id)->first();
-        $create_user = User::where('id', $survey->author_user_id)->first();
+        //ここからログインユーザに対応する情報
+        $userdata = $this->_initUserData($request);
+   
+        $user_id = ($userdata->logon)? $userdata->user_id : 0;
+        $user = User::where('id', $user_id)->first();   //ユーザ情報を取得
         
+        $voted = !empty(SvUserIdSurveyRelation::where('survey_id', $survey_id)->where('user_id', $user_id)->first()); //自分が回答済みか
+        $voted = $voted or ($survey->author_user_id == $user_id);   //自分が作成したか
+        $voted = $voted or Carbon::parse($survey->end_at)->isPast();//締切が過ぎたか
+        
+        $my_vote = $votes->where('user_id', $user_id)->first(); //自身の投票を取得
+        $my_vote_num = (empty($my_vote))? -1:$my_vote->number; //自身が投票した選択肢番号を取得
+        
+        //構造体に全て詰め込む
         $data = array(
-            'voted' => !empty($voted),
+            'voted' => $voted,
             'survey_id' => $survey_id,
             'question' => $survey->description,
             'screen_name' => $user->name,
@@ -371,9 +359,6 @@ class SurveyController {
             $data['option'][] = $op_var;
             $i++;
         }
-        //$data['option'][0]['checked'] = true;
-        //var_dump($data);
-        
         foreach($tags as $tag){
             $tag_var = array(
                 'name' => $tag->name,

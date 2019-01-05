@@ -6,20 +6,22 @@
             <file>file:/C:/xampp/htdocs/survey/app/Http/Controllers/Auth/ResetPasswordController.php</file>
             <file>file:/C:/xampp/htdocs/survey/app/Http/Controllers/SurveyController.php</file>
             <file>file:/C:/xampp/htdocs/survey/.env</file>
+            <file>file:/C:/xampp/htdocs/survey/resources/views/home.blade.php</file>
             <file>file:/C:/xampp/htdocs/survey/resources/views/debug.blade.php</file>
             <file>file:/C:/xampp/htdocs/survey/app/Http/Controllers/HomeController.php</file>
+            <file>file:/C:/xampp/htdocs/survey/resources/views/top.blade.php</file>
             <file>file:/C:/xampp/htdocs/survey/.env.example</file>
             <file>file:/C:/xampp/htdocs/survey/resources/views/survey.blade.php</file>
             <file>file:/C:/xampp/htdocs/survey/app/SvUser.php</file>
             <file>file:/C:/xampp/htdocs/survey/app/SvSurvey.php</file>
             <file>file:/C:/xampp/htdocs/survey/resources/views/welcome.blade.php</file>
+            <file>file:/C:/xampp/htdocs/survey/resources/views/layouts/loginbutton.blade.php</file>
+            <file>file:/C:/xampp/htdocs/survey/resources/views/layouts/base.blade.php</file>
             <file>file:/C:/xampp/htdocs/survey/resources/lang/en/auth.php</file>
             <file>file:/C:/xampp/htdocs/survey/resources/views/votedsurvey.blade.php</file>
             <file>file:/C:/xampp/htdocs/survey/resources/views/search.blade.php</file>
             <file>file:/C:/xampp/htdocs/survey/config/app.php</file>
-            <file>file:/C:/xampp/htdocs/survey/resources/views/logoff.blade.php</file>
             <file>file:/C:/xampp/htdocs/survey/resources/views/signup.blade.php</file>
-            <file>file:/C:/xampp/htdocs/survey/resources/views/logon.blade.php</file>
             <file>file:/C:/xampp/htdocs/survey/app/Http/Controllers/Controller.php</file>
             <file>file:/C:/xampp/htdocs/survey/resources/views/searchempty.blade.php</file>
             <file>file:/C:/xampp/htdocs/survey/app/User.php</file>
