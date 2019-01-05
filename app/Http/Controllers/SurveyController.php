@@ -350,7 +350,7 @@ class SurveyController {
                 'text' => $op->description,
                 'my_voted' => ($i == $my_vote_num),
             );
-            if($voted){
+            if($voted or $data['is_end']){
                 $op_var['vote_count'] = $votes->where('number', $op->number)->count();
             }
             $data['option'][] = $op_var;
