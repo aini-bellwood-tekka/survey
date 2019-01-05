@@ -330,7 +330,7 @@ class SurveyController {
             'voted' => $voted,
             'survey_id' => $survey_id,
             'question' => $survey->description,
-            'screen_name' => $user->name,
+            'screen_name' => ($userdata['logon'])? $user->name : 'guest',
             'create_user_screen_name' => $create_user->name,
             
             'all_vote_count' => $all_vote_count,
