@@ -294,7 +294,7 @@ class SurveyController {
         $data =  $this->_getSurvey($request);
         $userdata = $this->_initUserData($request);
 
-        return view(($voted)? 'votedsurvey':'survey', ['message' => $massage,'data' =>$data, 'userdata' => $userdata]);
+        return view(($data['voted'])? 'votedsurvey':'survey', ['message' => $massage,'data' =>$data, 'userdata' => $userdata]);
     }
     public function apiGetSurvey(Request $request) {
         return $this->_getSurvey($request);
@@ -316,7 +316,6 @@ class SurveyController {
         $userdata = $this->_initUserData($request);
    
         $user_id = ($userdata['logon'])? $userdata['user_id'] : 0;
-        $user = User::where('id', $user_id)->first();   //ユーザ情報を取得
         
         $voted = !empty(SvUserIdSurveyRelation::where('survey_id', $survey_id)->where('user_id', $user_id)->first()); //自分が回答済みか
         $voted = $voted or ($survey->author_user_id == $user_id);   //自分が作成したか
@@ -330,7 +329,6 @@ class SurveyController {
             'voted' => $voted,
             'survey_id' => $survey_id,
             'question' => $survey->description,
-            'screen_name' => ($userdata['logon'])? $user->name : 'guest',
             'create_user_screen_name' => $create_user->name,
             
             'all_vote_count' => $all_vote_count,
