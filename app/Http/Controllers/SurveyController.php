@@ -315,7 +315,7 @@ class SurveyController {
         //ここからログインユーザに対応する情報
         $userdata = $this->_initUserData($request);
    
-        $user_id = ($userdata->logon)? $userdata->user_id : 0;
+        $user_id = ($userdata['logon'])? $userdata['user_id'] : 0;
         $user = User::where('id', $user_id)->first();   //ユーザ情報を取得
         
         $voted = !empty(SvUserIdSurveyRelation::where('survey_id', $survey_id)->where('user_id', $user_id)->first()); //自分が回答済みか
