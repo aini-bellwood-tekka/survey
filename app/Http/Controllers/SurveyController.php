@@ -295,7 +295,7 @@ class SurveyController {
         $data =  $this->_getSurvey($request);
         $userdata = $this->_initUserData($request);
 
-        return view(($data['voted'])? 'votedsurvey':'survey', ['message' => $massage,'data' =>$data, 'userdata' => $userdata]);
+        return view(($data['voted'])? 'votedsurvey':'survey', ['message' => $message,'data' =>$data, 'userdata' => $userdata]);
     }
     public function apiGetSurvey(Request $request) {
         return $this->_getSurvey($request);
