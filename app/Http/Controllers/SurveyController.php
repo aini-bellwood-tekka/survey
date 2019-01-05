@@ -318,12 +318,13 @@ class SurveyController {
    
         $user_id = ($userdata['logon'])? $userdata['user_id'] : 0;
         
-        $voted = !empty(SvUserIdSurveyRelation::where('survey_id', $survey_id)->where('user_id', $user_id)->first()); //自分が回答済みか
+        $my_vote = $votes->where('user_id', $user_id)->first(); //自身の投票を取得
+        $my_vote_num = (empty($my_vote))? -1:$my_vote->number; //自身が投票した選択肢番号を取得
+
+        $voted = !empty($my_vote); //自分が回答済みか
         $voted = $voted or ($survey->author_user_id == $user_id);   //自分が作成したか
         $voted = $voted or Carbon::parse($survey->end_at)->isPast();//締切が過ぎたか
         
-        $my_vote = $votes->where('user_id', $user_id)->first(); //自身の投票を取得
-        $my_vote_num = (empty($my_vote))? -1:$my_vote->number; //自身が投票した選択肢番号を取得
         
         //構造体に全て詰め込む
         $data = array(
