@@ -21,7 +21,7 @@
              <td><?php echo ($op['my_voted'])?'あなたが投票しました！':''; ?></td></tr>
     <?php } ?>
     </table>
-    <?php if( $data['my_survey'] ) { ?>
+    <?php if( $data['is_my_survey'] ) { ?>
         <?php echo 'あなたが作成した質問です。'; ?><br>
     <?php }elseif($data['my_vote_num'] == -1){ ?>
         <?php echo 'あなたは投票しませんでした。'; ?><br>
