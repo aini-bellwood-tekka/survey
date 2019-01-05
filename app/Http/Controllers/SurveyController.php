@@ -272,6 +272,7 @@ class SurveyController {
     }  
     
     public function webGetSurvey(Request $request) {
+        $message = '';
         
        if($request->error == 1){
             $message = 'タグの登録に失敗しました。(E004)';
