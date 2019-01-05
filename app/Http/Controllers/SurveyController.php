@@ -295,7 +295,7 @@ class SurveyController {
         $data =  $this->_getSurvey($request);
         $userdata = $this->_initUserData($request);
 
-        return view(($data['voted'])? 'votedsurvey':'survey', ['message' => $message,'data' =>$data, 'userdata' => $userdata]);
+        return view(($data['voted'] or $data['is_end'])? 'votedsurvey':'survey', ['message' => $message,'data' =>$data, 'userdata' => $userdata]);
     }
     public function apiGetSurvey(Request $request) {
         return $this->_getSurvey($request);
@@ -321,10 +321,7 @@ class SurveyController {
         $my_vote = $votes->where('user_id', $user_id)->first(); //自身の投票を取得
         $my_vote_num = (empty($my_vote))? -1:$my_vote->number; //自身が投票した選択肢番号を取得
 
-        $voted = !empty($my_vote); //自分が回答済みか
-        $voted = $voted or ($survey->author_user_id == $user_id);   //自分が作成したか
-        $voted = $voted or Carbon::parse($survey->end_at)->isPast();//締切が過ぎたか
-        
+        $voted = (!empty($my_vote)) or ($survey->author_user_id == $user_id); //自分が回答済みか or 自分が作成したか    
         
         //構造体に全て詰め込む
         $data = array(
