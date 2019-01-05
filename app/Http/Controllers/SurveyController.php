@@ -142,7 +142,8 @@ class SurveyController {
             
             //キーワード検索
             if($searchOption['text'] != ''){
-                $baseSurveys = $baseSurveys->where('description','like', '%'.$searchOption['text'].'%');
+                $text = $searchOption['text'];
+                $baseSurveys = $baseSurveys->where('description','like', '%{$text}%');
             }
             
         }elseif($searchOption['sort'] == 'ma'){
@@ -153,7 +154,8 @@ class SurveyController {
 
             //キーワード検索
             if($searchOption['text'] != ''){
-                $answers = $answers->where('description','like', '%'.$searchOption['text'].'%');
+                $text = $searchOption['text'];
+                $answers = $answers->where('description','like', '%{$text}%');
             }
             
             if($searchOption['order'] == 'o'){
@@ -181,7 +183,8 @@ class SurveyController {
             
             //キーワード検索
             if($searchOption['text'] != ''){
-                $baseSurveys = $baseSurveys->where('description',$searchOption['text']);
+                $text = $searchOption['text'];
+                $baseSurveys = $baseSurveys->where('description','like', '%{$text}%');
             }
         }
         
